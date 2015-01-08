@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking" xmlns:data-mapper="http://www.mulesoft.org/schema/mule/ee/data-mapper" xmlns:pattern="http://www.mulesoft.org/schema/mule/pattern"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:spring="http://www.springframework.org/schema/beans" version="EE-3.5.1"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/pattern http://www.mulesoft.org/schema/mule/pattern/current/mule-pattern.xsd
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/data-mapper http://www.mulesoft.org/schema/mule/ee/data-mapper/current/mule-data-mapper.xsd
+http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/mule/ee/tracking/current/mule-tracking-ee.xsd">
+    <!-- <flow name="httptestFlow1" doc:name="httptestFlow1">
+        <http:inbound-endpoint exchange-pattern="request-response" host="localhost" port="8081" doc:name="HTTP"/>
+        <custom-transformer class="cn.edu.zju.ccnt.RequestPasser" doc:name="Java"/>
+        <http:outbound-endpoint exchange-pattern="request-response" host="www.juhe.cn//" port="80" method="GET" doc:name="HTTP"/>
+    </flow> 
+    <pattern:http-proxy name="http-proxy-sample"
+                inboundAddress="http://localhost:8080"
+                outboundAddress="http://www.juhe.cn//" />
+    -->
+    
+    <flow name="httptestFlow1" doc:name="httptestFlow1">
+    	<http:inbound-endpoint address="http://localhost:8081" exchange-pattern="request-response" doc:name="HTTP"/>
+    	<logger message="The http.request before is #[header:INBOUND:http.request]" level="INFO" doc:name="Logger"/>
+        <custom-transformer class="cn.edu.zju.ccnt.RequestTransformer" doc:name="Java"/>
+        <set-variable variableName="httpMethod" value="#[header:INBOUND:http.method]" doc:name="Variable"/>
+        <choice doc:name="Choice">
+            <when expression="#[flowVars.httpMethod.equals('GET')]">
+                <http:outbound-endpoint exchange-pattern="request-response" method="GET" address="http://#[flowVars.reqHost]#[flowVars.reqPath]" doc:name="HTTP"/>
+            </when>
+            <otherwise>
+                <http:outbound-endpoint exchange-pattern="request-response" method="POST" address="http://#[flowVars.reqHost]#[flowVars.reqPath]" doc:name="HTTP"/>
+            </otherwise>
+        </choice>
+        <logger message="The http.request after is #[header:INBOUND:http.request] and method is #[header:INBOUND:http.method]" level="INFO" doc:name="Logger"/>
+    </flow>
+    
+</mule>
