@@ -45,7 +45,7 @@ http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/m
         <set-variable variableName="httpMethod" value="#[header:INBOUND:http.method]" doc:name="Variable"/>
         <choice doc:name="Choice">
             <when expression="#[flowVars.httpMethod.equals('GET')]">
-                <http:outbound-endpoint exchange-pattern="request-response" method="GET" address="http://#[flowVars.reqHost]#[flowVars.reqPath]" doc:name="HTTP"/>
+                <http:outbound-endpoint exchange-pattern="request-response" method="GET" address="http://#[flowVars.reqHost]#[flowVars.reqPath]" doc:name="HTTP" />
             </when>
             <otherwise>
                 <http:outbound-endpoint exchange-pattern="request-response" method="POST" address="http://#[flowVars.reqHost]#[flowVars.reqPath]" doc:name="HTTP"/>
