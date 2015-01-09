@@ -11,6 +11,11 @@ public class TrainRequestTransformer extends AbstractMessageTransformer {
 	public Object transformMessage(MuleMessage message, String outputEncoding)
 			throws TransformerException {
 		logger.info("matched train regex");
+		
+		String reqPath = (String)message.getInboundProperty("http.request");
+		message.setInvocationProperty("reqHost", "apis.juhe.cn");
+		message.setInvocationProperty("reqPath", reqPath);
+		
 		return message;
 	}
 
