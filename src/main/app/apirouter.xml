@@ -10,20 +10,38 @@ http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/cor
 http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
 http://www.mulesoft.org/schema/mule/ee/data-mapper http://www.mulesoft.org/schema/mule/ee/data-mapper/current/mule-data-mapper.xsd
 http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/mule/ee/tracking/current/mule-tracking-ee.xsd">
-    <!-- <flow name="httptestFlow1" doc:name="httptestFlow1">
-        <http:inbound-endpoint exchange-pattern="request-response" host="localhost" port="8081" doc:name="HTTP"/>
-        <custom-transformer class="cn.edu.zju.ccnt.RequestPasser" doc:name="Java"/>
-        <http:outbound-endpoint exchange-pattern="request-response" host="www.juhe.cn//" port="80" method="GET" doc:name="HTTP"/>
-    </flow> 
-    <pattern:http-proxy name="http-proxy-sample"
-                inboundAddress="http://localhost:8080"
-                outboundAddress="http://www.juhe.cn//" />
-    -->
     
-    <flow name="httptestFlow1" doc:name="httptestFlow1">
+    <flow name="apirouter" doc:name="apirouter">
     	<http:inbound-endpoint address="http://localhost:8081" exchange-pattern="request-response" doc:name="HTTP"/>
-    	<logger message="The http.request before is #[header:INBOUND:http.request]" level="INFO" doc:name="Logger"/>
-        <custom-transformer class="cn.edu.zju.ccnt.RequestTransformer" doc:name="Java"/>
+    	<logger message="The http.request received is #[message.inboundProperties['http.request']] \n
+    	The http.query.params received is #[message.inboundProperties['http.query.params']]" level="INFO" doc:name="Logger"/>
+        <choice doc:name="Choice">
+            <when expression="#[message.inboundProperties['http.request'].contains('/weather/')]">
+                <custom-transformer class="cn.edu.zju.ccnt.WeatherRequestTransformer" doc:name="Java"/>
+            </when>
+            <when expression="#[message.inboundProperties['http.request'].contains('/train/')]">
+                <custom-transformer class="cn.edu.zju.ccnt.TrainRequestTransformer" doc:name="Java"/>
+            </when>
+            <when expression="#[message.inboundProperties['http.request'].contains('/flight/')]">
+                <custom-transformer class="cn.edu.zju.ccnt.FlightRequestTransformer" doc:name="Java"/>
+            </when>
+            <when expression="#[message.inboundProperties['http.request'].contains('/bus/')]">
+                <custom-transformer class="cn.edu.zju.ccnt.BusRequestTransformer" doc:name="Java"/>
+            </when>
+            <when expression="#[message.inboundProperties['http.request'].contains('/taxi/')]">
+                <custom-transformer class="cn.edu.zju.ccnt.TaxiRequestTransformer" doc:name="Java"/>
+            </when>
+            <when expression="#[message.inboundProperties['http.request'].contains('/hotel/')]">
+                <custom-transformer class="cn.edu.zju.ccnt.HotelRequestTransformer" doc:name="Java"/>
+            </when>
+            <when expression="#[message.inboundProperties['http.request'].contains('/restaurant/')]">
+                <custom-transformer class="cn.edu.zju.ccnt.RestaurantRequestTransformer" doc:name="Java"/>
+            </when>
+            <otherwise>
+                <custom-transformer class="cn.edu.zju.ccnt.DefaultRequestTransformer" doc:name="Java"/>
+            </otherwise>
+        </choice>
+        <!-- custom-transformer class="cn.edu.zju.ccnt.RequestTransformer" doc:name="Java"/ -->
         <set-variable variableName="httpMethod" value="#[header:INBOUND:http.method]" doc:name="Variable"/>
         <choice doc:name="Choice">
             <when expression="#[flowVars.httpMethod.equals('GET')]">
