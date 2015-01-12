@@ -1,17 +1,19 @@
 package cn.edu.zju.ccnt;
 
-import org.apache.log4j.Logger;
-import org.mule.api.MuleMessage;
-import org.mule.api.transformer.TransformerException;
-import org.mule.transformer.AbstractMessageTransformer;
+import java.util.Map;
 
-public class FlightRequestTransformer extends AbstractMessageTransformer {
-	Logger logger = Logger.getLogger(FlightRequestTransformer.class);
-	
-	public Object transformMessage(MuleMessage message, String outputEncoding)
-			throws TransformerException {
-		logger.info("matched flight regex");
-		return message;
+public class FlightRequestTransformer extends RequestTransformer {
+
+	@Override
+	protected String generateReqHost() {
+		return "api.open.baidu.com";
+	}
+
+	@Override
+	protected String generateReqPath() {
+		Map<String, String> query = getInboundQuery();
+		query.put("appid", "4047");
+		return "/pae/channel/data/asyncqury?" + queryToString(query);
 	}
 
 }
