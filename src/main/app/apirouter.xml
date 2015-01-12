@@ -42,7 +42,7 @@ http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/m
             </otherwise>
         </choice>
         <!-- custom-transformer class="cn.edu.zju.ccnt.RequestTransformer" doc:name="Java"/ -->
-        <set-variable variableName="httpMethod" value="#[header:INBOUND:http.method]" doc:name="Variable"/>
+
         <choice doc:name="Choice">
             <when expression="#[flowVars.httpMethod.equals('GET')]">
                 <http:outbound-endpoint exchange-pattern="request-response" method="GET" address="http://#[flowVars.reqHost]#[flowVars.reqPath]" doc:name="HTTP" />
