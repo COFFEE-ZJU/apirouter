@@ -6,14 +6,10 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Map.Entry;
 
 import org.apache.log4j.Logger;
-import org.mule.api.MuleMessage;
-import org.mule.api.transformer.TransformerException;
-import org.mule.transformer.AbstractMessageTransformer;
 
-public class WeatherRequestTransformer extends AbstractMessageTransformer {
+public class WeatherRequestTransformer extends RequestTransformer {
 	static Logger logger = Logger.getLogger(WeatherRequestTransformer.class);
 	final static Map<String, String> cityCodeMap = new HashMap<String, String>();
 	
@@ -45,37 +41,22 @@ public class WeatherRequestTransformer extends AbstractMessageTransformer {
 		logger.info("city codes loaded, size: " + cityCodeMap.size());
 //		logger.info("try Hangzhou: " + cityCodeMap.get("º¼ÖÝ"));
 	}
-	
-	private static String queryToString(Map<String, String> query){
-		if(query == null || query.isEmpty()) return "";
-		
-		StringBuffer buf = new StringBuffer();
-		for(Entry<String, String> entry: query.entrySet()){
-			buf.append(entry.getKey());
-			buf.append("=");
-			buf.append(entry.getValue());
-			buf.append("&");
-		}
-		return buf.substring(0, buf.length()-1);
+
+	@Override
+	protected String generateReqHost() {
+		return "weather.51wnl.com";
 	}
-	
-	public Object transformMessage(MuleMessage message, String outputEncoding)
-			throws TransformerException {
-		logger.info("matched weather regex");
-		
-		@SuppressWarnings("unchecked")
-		Map<String, String> query = (Map<String, String>)message.getInboundProperty("http.query.params");
+
+	@Override
+	protected String generateReqPath() {
+		Map<String, String> query = getInboundQuery();
 		String cityName = query.get("city");
 		String cityCode;
 		if(cityName != null){
 			if(cityCodeMap.isEmpty()) getCityCodeMapFromFile();
 			cityCode = cityCodeMap.get(cityName);
 		} else cityCode = null;
-		message.setInvocationProperty("reqHost", "weather.51wnl.com");
-		message.setInvocationProperty("reqPath", 
-				"/weatherinfo/GetMoreWeather?cityCode=" + (cityCode == null ? "" : cityCode) + "&weatherType=0");
-		
-		return message;
+		return "/weatherinfo/GetMoreWeather?cityCode=" + (cityCode == null ? "" : cityCode) + "&weatherType=0";
 	}
 
 }
