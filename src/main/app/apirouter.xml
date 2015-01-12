@@ -44,11 +44,18 @@ http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/m
         <!-- custom-transformer class="cn.edu.zju.ccnt.RequestTransformer" doc:name="Java"/ -->
 
         <choice doc:name="Choice">
+        	<when expression="#[flowVars.hasFormatError]">
+        		<set-payload value="{&quot;success&quot;:false,&quot;reason&quot;:&quot;#[flowVars.formatErrReason]&quot;}" doc:name="Set Payload"></set-payload>
+        	</when>
             <when expression="#[flowVars.httpMethod.equals('GET')]">
                 <http:outbound-endpoint exchange-pattern="request-response" method="GET" address="http://#[flowVars.reqHost]#[flowVars.reqPath]" doc:name="HTTP" />
             </when>
+            <when expression="#[flowVars.httpMethod.equals('POST')]">
+            	<http:outbound-endpoint exchange-pattern="request-response" method="POST" contentType="application/x-www-form-urlencoded" 
+                address="http://#[flowVars.reqHost]#[flowVars.reqPath]" doc:name="HTTP"/>
+            </when>
             <otherwise>
-                <http:outbound-endpoint exchange-pattern="request-response" method="POST" address="http://#[flowVars.reqHost]#[flowVars.reqPath]" doc:name="HTTP"/>
+                <http:outbound-endpoint exchange-pattern="request-response" method="PUT" address="http://#[flowVars.reqHost]#[flowVars.reqPath]" doc:name="HTTP"/>
             </otherwise>
         </choice>
         <logger message="The http.request after is #[header:INBOUND:http.request] and method is #[header:INBOUND:http.method]" level="INFO" doc:name="Logger"/>

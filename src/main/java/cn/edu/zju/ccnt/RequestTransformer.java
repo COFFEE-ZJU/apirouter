@@ -2,6 +2,7 @@ package cn.edu.zju.ccnt;
 
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 
 import org.apache.log4j.Logger;
 import org.mule.api.MuleMessage;
@@ -15,6 +16,8 @@ public abstract class RequestTransformer extends AbstractMessageTransformer {
 	private String reqPath = null;
 	private String[] pathSplit = null;
 	private Map<String, String> query = null;
+	private boolean hasFormatError = false;
+	private String formatErrReason = null;
 	
 	public Object transformMessage(MuleMessage message, String outputEncoding)
 			throws TransformerException {
@@ -22,9 +25,13 @@ public abstract class RequestTransformer extends AbstractMessageTransformer {
 		this.message = message;
 		
 		init();
-		message.setInvocationProperty("reqHost", generateReqHost());
-		message.setInvocationProperty("reqPath", generateReqPath());
-		message.setInvocationProperty("httpMethod", generateHttpMethod());
+		String tmp;
+		message.setInvocationProperty("reqHost", (tmp = generateReqHost()) == null ? "" : tmp );
+		message.setInvocationProperty("reqPath", (tmp = generateReqPath()) == null ? "" : tmp );
+		message.setInvocationProperty("httpMethod", (tmp = generateHttpMethod()) == null ? "" : tmp );
+		
+		message.setInvocationProperty("hasFormatError", hasFormatError);
+		message.setInvocationProperty("formatErrReason", formatErrReason == null ? "" : formatErrReason);
 //		
 //		String reqPath = (String)message.getInboundProperty("http.request");
 //		String[] pathSplit = reqPath.split("/");
@@ -54,6 +61,10 @@ public abstract class RequestTransformer extends AbstractMessageTransformer {
 		return buf.substring(0, buf.length()-1);
 	}
 	
+	protected MuleMessage getMessage(){
+		return message;
+	}
+	
 	protected String getInboundReqPath(){
 		if(message == null) return null;
 		if(reqPath == null) reqPath = (String)message.getInboundProperty("http.request");
@@ -76,6 +87,13 @@ public abstract class RequestTransformer extends AbstractMessageTransformer {
 	 * Override it and put anything you like before we invoke generateReqHost, generateReqPath and generateHttpMethod
 	 */
 	protected void init(){}
+	
+	protected boolean setPayload(Object payload){
+		if(message == null) return false;
+		
+		message.setPayload(payload);
+		return true;
+	}
 	
 	@SuppressWarnings("unchecked")
 	protected Map<String, String> getInboundQuery(){
@@ -108,4 +126,8 @@ public abstract class RequestTransformer extends AbstractMessageTransformer {
 		return message.getInboundProperty("http.method");
 	}
 
+	protected void formatError(String reason){
+		hasFormatError = true;
+		formatErrReason = reason;
+	}
 }
