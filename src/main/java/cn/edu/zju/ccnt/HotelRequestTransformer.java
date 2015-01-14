@@ -1,17 +1,24 @@
 package cn.edu.zju.ccnt;
 
+import java.util.Map;
 import org.apache.log4j.Logger;
-import org.mule.api.MuleMessage;
-import org.mule.api.transformer.TransformerException;
-import org.mule.transformer.AbstractMessageTransformer;
 
-public class HotelRequestTransformer extends AbstractMessageTransformer {
-	Logger logger = Logger.getLogger(HotelRequestTransformer.class);
+public class HotelRequestTransformer extends RequestTransformer {
+	Logger logger = Logger.getLogger(RestaurantRequestTransformer.class);
 	
-	public Object transformMessage(MuleMessage message, String outputEncoding)
-			throws TransformerException {
-		logger.info("matched hotel regex");
-		return message;
+	@Override
+	protected String generateReqHost() {
+		return "api.map.baidu.com";
+	}
+
+	@Override
+	protected String generateReqPath() {
+		Map<String, String> query = getInboundQuery();
+		
+		// query keySets: location, keyWord, output, ak
+		query.put("output", "xml");
+		query.put("ak", "SGwLRBc2CO4UNwE8GGHOLFN3");
+		return "/telematics/v3/local?" + queryToString(query);
 	}
 
 }
