@@ -6,12 +6,19 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 import org.apache.log4j.Logger;
 
 public class WeatherRequestTransformer extends RequestTransformer {
-	static Logger logger = Logger.getLogger(WeatherRequestTransformer.class);
-	final static Map<String, String> cityCodeMap = new HashMap<String, String>();
+	private static Logger logger = Logger.getLogger(WeatherRequestTransformer.class);
+	private final static Map<String, String> cityCodeMap = new HashMap<String, String>();
+	private static final Pattern P_51WNL = Pattern.compile("/weather/51wnl/q\\?.*");
+	private static final Pattern P_ZGTQW_ZS = Pattern.compile("/weather/zgtqw/zs/q\\?.*");
+	private static final Pattern P_ZGTQW_SK = Pattern.compile("/weather/zgtqw/sk/q\\?.*");
+	
+	private String host;
+	private String path;
 	
 	private static void getCityCodeMapFromFile(){
 		cityCodeMap.clear();
@@ -43,20 +50,47 @@ public class WeatherRequestTransformer extends RequestTransformer {
 	}
 
 	@Override
+	protected void init(){
+		String oriPath = getInboundReqPath();
+		Map<String, String> query = getInboundQuery();
+		String cityName = query.get("city");
+		if(cityName == null){
+			formatError("city param missing");
+			return;
+		}
+		
+		String cityCode;
+		if(cityCodeMap.isEmpty()) getCityCodeMapFromFile();
+		cityCode = cityCodeMap.get(cityName);
+		
+		if(cityCode == null){
+			formatError("city not found");
+			return;
+		}
+		
+		if(P_51WNL.matcher(oriPath).matches()){
+			host = "weather.51wnl.com";
+			path = "/weatherinfo/GetMoreWeather?cityCode=" + cityCode + "&weatherType=0";
+		} else if(P_ZGTQW_ZS.matcher(oriPath).matches()){
+			host = "www.weather.com.cn";
+			path = "/data/zs/" + cityCode + ".html";
+		} else if(P_ZGTQW_SK.matcher(oriPath).matches()){
+			host = "www.weather.com.cn";
+			path = "/data/sk/" + cityCode + ".html";
+		} else {
+			formatError("unknow path in weather");
+		}
+		
+	}
+	
+	@Override
 	protected String generateReqHost() {
-		return "weather.51wnl.com";
+		return host;
 	}
 
 	@Override
 	protected String generateReqPath() {
-		Map<String, String> query = getInboundQuery();
-		String cityName = query.get("city");
-		String cityCode;
-		if(cityName != null){
-			if(cityCodeMap.isEmpty()) getCityCodeMapFromFile();
-			cityCode = cityCodeMap.get(cityName);
-		} else cityCode = null;
-		return "/weatherinfo/GetMoreWeather?cityCode=" + (cityCode == null ? "" : cityCode) + "&weatherType=0";
+		return path;
 	}
 
 }
