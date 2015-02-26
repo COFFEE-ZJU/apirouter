@@ -6,7 +6,9 @@ integrate different apis
 
 ##weather：
 
-1. /weather/q?city=杭州
+1. /weather/51wnl/q?city=杭州    51万年历提供的天气查询接口
+2. /weather/zgtqw/zs/q?city=杭州    中国天气网提供的天气指数查询接口
+3. /weather/zgtqw/sk/q?city=杭州    中国天气网提供的天气实况查询接口
 
 ##train：
     1. /train/juhe/* 
