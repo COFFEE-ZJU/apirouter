@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking" xmlns:data-mapper="http://www.mulesoft.org/schema/mule/ee/data-mapper" xmlns:pattern="http://www.mulesoft.org/schema/mule/pattern"
+<mule xmlns:json="http://www.mulesoft.org/schema/mule/json" xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking" xmlns:data-mapper="http://www.mulesoft.org/schema/mule/ee/data-mapper" xmlns:pattern="http://www.mulesoft.org/schema/mule/pattern"
 	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
 	xmlns:spring="http://www.springframework.org/schema/beans" version="EE-3.5.1"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -9,13 +9,44 @@ http://www.springframework.org/schema/beans http://www.springframework.org/schem
 http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
 http://www.mulesoft.org/schema/mule/ee/data-mapper http://www.mulesoft.org/schema/mule/ee/data-mapper/current/mule-data-mapper.xsd
-http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/mule/ee/tracking/current/mule-tracking-ee.xsd">
+http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/mule/ee/tracking/current/mule-tracking-ee.xsd
+http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/json/current/mule-json.xsd">
     
     <flow name="apirouter" doc:name="apirouter">
     	<http:inbound-endpoint address="http://localhost:8081" exchange-pattern="request-response" doc:name="HTTP"/>
     	<logger message="The http.request received is #[message.inboundProperties['http.request']] \n
     	The http.query.params received is #[message.inboundProperties['http.query.params']]" level="INFO" doc:name="Logger"/>
+        <flow-ref name="preProcess" doc:name="Flow Reference"/>
+        <!-- custom-transformer class="cn.edu.zju.ccnt.RequestTransformer" doc:name="Java"/ -->
+        <until-successful doc:name="Until Successful" maxRetries="5" synchronous="true" millisBetweenRetries="500" failureExpression="#[header:INBOUND:http.status!=200]">
+        	<flow-ref name="invokeService" doc:name="Flow Reference"/>
+        </until-successful>
+        <json:json-to-object-transformer returnClass="cn.edu.zju.ccnt.result._51wnl.WeatherRes" doc:name="JSON to Object"/>
+        <custom-transformer class="cn.edu.zju.ccnt.rules.TransformResult" doc:name="Java"/>
+        <json:object-to-json-transformer encoding="UTF-8" doc:name="Object to JSON"/>
+        <logger message="The http.request after is #[header:INBOUND:http.request] and method is #[header:INBOUND:http.method]" level="INFO" doc:name="Logger"/>
+        <http:response-builder status="200" contentType="application/json;charset=utf-8" doc:name="HTTP Response Builder"/>
+    </flow>
+    <sub-flow name="invokeService" doc:name="invokeService">
         <choice doc:name="Choice">
+            <when expression="#[flowVars.hasFormatError]">
+                <set-payload value="{&quot;success&quot;:false,&quot;reason&quot;:&quot;#[flowVars.formatErrReason]&quot;}" doc:name="Set Payload"/>
+            </when>
+            <when expression="#[flowVars.httpMethod.equals('GET')]">
+                <http:outbound-endpoint exchange-pattern="request-response" method="GET" address="http://#[flowVars.reqHost]#[flowVars.reqPath]" doc:name="HTTP"/>
+            </when>
+            <when expression="#[flowVars.httpMethod.equals('POST')]">
+                <http:outbound-endpoint exchange-pattern="request-response" method="POST" address="http://#[flowVars.reqHost]#[flowVars.reqPath]" contentType="application/x-www-form-urlencoded" doc:name="HTTP"/>
+            </when>
+            <otherwise>
+                <http:outbound-endpoint exchange-pattern="request-response" method="PUT" address="http://#[flowVars.reqHost]#[flowVars.reqPath]" doc:name="HTTP"/>
+            </otherwise>
+        </choice>
+        <logger message="Response code is #[header:INBOUND:http.status]" level="INFO" doc:name="Logger"/>
+    </sub-flow>
+    
+    <sub-flow name="preProcess" doc:name="preProcess">
+    	<choice doc:name="Choice">
             <when expression="#[message.inboundProperties['http.request'].contains('/weather/')]">
                 <custom-transformer class="cn.edu.zju.ccnt.WeatherRequestTransformer" doc:name="Java"/>
             </when>
@@ -41,24 +72,7 @@ http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/m
                 <custom-transformer class="cn.edu.zju.ccnt.DefaultRequestTransformer" doc:name="Java"/>
             </otherwise>
         </choice>
-        <!-- custom-transformer class="cn.edu.zju.ccnt.RequestTransformer" doc:name="Java"/ -->
+    </sub-flow>
 
-        <choice doc:name="Choice">
-        	<when expression="#[flowVars.hasFormatError]">
-        		<set-payload value="{&quot;success&quot;:false,&quot;reason&quot;:&quot;#[flowVars.formatErrReason]&quot;}" doc:name="Set Payload"></set-payload>
-        	</when>
-            <when expression="#[flowVars.httpMethod.equals('GET')]">
-                <http:outbound-endpoint exchange-pattern="request-response" method="GET" address="http://#[flowVars.reqHost]#[flowVars.reqPath]" doc:name="HTTP" />
-            </when>
-            <when expression="#[flowVars.httpMethod.equals('POST')]">
-            	<http:outbound-endpoint exchange-pattern="request-response" method="POST" contentType="application/x-www-form-urlencoded" 
-                address="http://#[flowVars.reqHost]#[flowVars.reqPath]" doc:name="HTTP"/>
-            </when>
-            <otherwise>
-                <http:outbound-endpoint exchange-pattern="request-response" method="PUT" address="http://#[flowVars.reqHost]#[flowVars.reqPath]" doc:name="HTTP"/>
-            </otherwise>
-        </choice>
-        <logger message="The http.request after is #[header:INBOUND:http.request] and method is #[header:INBOUND:http.method]" level="INFO" doc:name="Logger"/>
-    </flow>
     
 </mule>
