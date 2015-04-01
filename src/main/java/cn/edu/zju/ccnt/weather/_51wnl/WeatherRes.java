@@ -1,4 +1,4 @@
-package cn.edu.zju.ccnt.result._51wnl;
+package cn.edu.zju.ccnt.weather._51wnl;
 
 import org.codehaus.jackson.annotate.JsonAutoDetect;
 

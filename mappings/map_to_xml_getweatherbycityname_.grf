@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?><Graph __version="3.5.0" author="zkf" created="Wed Apr 01 09:57:42 CST 2015" description="Map To Xml&lt;getWeatherbyCityName&gt;" guiVersion="3.4.4.P" id="1427866119977" licenseCode="Unlicensed" licenseType="Unknown" modified="Wed Apr 01 09:57:42 CST 2015" modifiedBy="zkf" name="Map_To_Xml_getWeatherbyCityName_" revision="1.0" showComponentDetails="false">
+<Global>
+<Metadata __filteredMetadata="false" __index="0" __referenceCounter="1" __sourcePath="{http://WebXml.com.cn/=ns0}/ns0:getWeatherbyCityName" _dataStructure="OBJECT" _id="__id" _type="Output" id="207e2d2b-ccb7-4a88-9b0f-a13009275116">
+<Record fieldDelimiter="," name="getWeatherbyCityName" recordDelimiter="\n\\|\r\n\\|\r" type="delimited">
+<Field __artificialType="_id" __systemManaged="true" name="__id" type="string"/>
+<Field __index="0" __sourcePath="{http://WebXml.com.cn/=ns0}/ns0:getWeatherbyCityName/ns0:theCityName" containerType="SINGLE" label="theCityName" name="theCityName" type="string"/>
+</Record>
+</Metadata>
+<Metadata __index="0" __referenceCounter="1" __sourcePath="{}/map" _dataStructure="OBJECT" _id="__id" _type="Input" id="4d73a1f1-8597-482e-90ba-faa7553d396e">
+<Record fieldDelimiter="," name="map" recordDelimiter="\n\\|\r\n\\|\r" type="delimited">
+<Field __artificialType="_id" __systemManaged="true" name="__id" type="string"/>
+<Field __index="0" __sourcePath="{}/map/city" containerType="SINGLE" label="city" name="city" type="string"/>
+</Record>
+</Metadata>
+<Dictionary>
+<Entry id="DictionaryEntry0" input="true" name="inputPayload" output="false" type="object"/>
+<Entry id="DictionaryEntry1" input="false" name="outputPayload" output="true" type="object"/>
+</Dictionary>
+</Global>
+<Phase number="0">
+<Node enabled="enabled" fileURL="dict:inputPayload" guiName="Map&lt;k,v&gt; READER" guiX="20" guiY="20" id="BEAN_READER0" type="BEAN_READER">
+<attr name="mapping"><![CDATA[<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<Context outPort="0" sequenceField="__id" xpath=".">
+  <Mapping cloverField="city" trim="true" xpath="city"/>
+</Context>
+]]></attr>
+<attr name="_data_format"><![CDATA[MAP]]></attr>
+</Node>
+<Node cacheInMemory="true" charset="UTF-8" enabled="enabled" fileURL="dict:outputPayload" guiName="XML WRITER" guiX="900" guiY="20" id="EXT_XML_WRITER0" type="EXT_XML_WRITER">
+<attr name="mapping"><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
+<clover:element clover:name="ns0:getWeatherbyCityName" xmlns:clover="http://www.cloveretl.com/ns/xmlmapping" xmlns:ns0="http://WebXml.com.cn/" clover:inPort="0">
+  <clover:element clover:name="ns0:theCityName">$0.theCityName</clover:element>
+</clover:element>]]></attr>
+<attr name="_data_format"><![CDATA[XML]]></attr>
+<attr name="__metadata"><![CDATA[true]]></attr>
+</Node>
+<Node enabled="enabled" guiName="Foreach 'map' -&gt; 'ns0:getWeatherbyCityName'" guiX="460" guiY="20" id="FOREACH_MAP_NS0_GET_WEATHERBY_CITY_NAME" transformClass="com.mulesoft.datamapper.transform.MelRecordTransform" type="REFORMAT">
+<attr name="melScript"><![CDATA[//MEL
+//START -> DO NOT REMOVE
+output.__id = input.__id;
+//END -> DO NOT REMOVE
+output.theCityName = input.city;]]></attr>
+</Node>
+<Edge debugMode="true" fromNode="BEAN_READER0:0" guiBendpoints="" id="Edge0" inPort="Port 0 (in)" metadata="4d73a1f1-8597-482e-90ba-faa7553d396e" outPort="Port 0 (out)" toNode="FOREACH_MAP_NS0_GET_WEATHERBY_CITY_NAME:0"/>
+<Edge debugMode="true" fromNode="FOREACH_MAP_NS0_GET_WEATHERBY_CITY_NAME:0" guiBendpoints="" id="Edge1" inPort="Port 0 (in)" metadata="207e2d2b-ccb7-4a88-9b0f-a13009275116" outPort="Port 0 (out)" toNode="EXT_XML_WRITER0:0"/>
+</Phase>
+</Graph>

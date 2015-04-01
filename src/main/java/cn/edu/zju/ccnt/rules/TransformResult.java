@@ -6,7 +6,7 @@ import org.mule.api.MuleMessage;
 import org.mule.api.transformer.TransformerException;
 import org.mule.transformer.AbstractMessageTransformer;
 
-import cn.edu.zju.ccnt.result._51wnl.WeatherRes;
+import cn.edu.zju.ccnt.weather._51wnl.WeatherRes;
 
 public class TransformResult extends AbstractMessageTransformer {
 	private static final Logger logger = Logger.getLogger(TransformResult.class);
