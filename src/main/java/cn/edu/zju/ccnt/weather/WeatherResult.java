@@ -1,43 +1,48 @@
 package cn.edu.zju.ccnt.weather;
 
 import org.codehaus.jackson.annotate.JsonAutoDetect;
+import org.codehaus.jackson.annotate.JsonIgnoreProperties;
+import org.codehaus.jackson.annotate.JsonProperty;
+
+import cn.edu.zju.ccnt.ApiResult;
 
 @JsonAutoDetect
-public class WeatherResult {
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class WeatherResult extends ApiResult {
 	private String city;
 	private String date;
 	private String tempMin;
 	private String tempMax;
+	private String weatherInfo;
 	
-	public String getCity() {
+	public String getcity() {
 		return city;
 	}
-	public void setCity(String city) {
+	public void setcity(String city) {
 		this.city = city;
 	}
-	public String getDate() {
+	public String getdate() {
 		return date;
 	}
-	public void setDate(String date) {
+	public void setdate(String date) {
 		this.date = date;
 	}
-	public String getTempMin() {
+	public String gettempMin() {
 		return tempMin;
 	}
-	public void setTempMin(String tempMin) {
+	public void settempMin(String tempMin) {
 		this.tempMin = tempMin;
 	}
-	public String getTempMax() {
+	public String gettempMax() {
 		return tempMax;
 	}
-	public void setTempMax(String tempMax) {
+	public void settempMax(String tempMax) {
 		this.tempMax = tempMax;
 	}
-	public String getWeatherInfo() {
+	public String getweatherInfo() {
 		return weatherInfo;
 	}
-	public void setWeatherInfo(String weatherInfo) {
+	public void setweatherInfo(String weatherInfo) {
 		this.weatherInfo = weatherInfo;
 	}
-	private String weatherInfo;
 }

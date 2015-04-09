@@ -1,8 +1,10 @@
 package cn.edu.zju.ccnt.weather._51wnl;
 
 import org.codehaus.jackson.annotate.JsonAutoDetect;
+import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 
 @JsonAutoDetect
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class WeatherRes {
 	private WeatherInfo weatherinfo;
 
@@ -17,6 +19,7 @@ public class WeatherRes {
 }
 
 @JsonAutoDetect
+@JsonIgnoreProperties(ignoreUnknown = true)
 class WeatherInfo {
 	private String city;
 	private String date_y;

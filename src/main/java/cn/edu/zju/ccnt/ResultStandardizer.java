@@ -7,9 +7,11 @@ public abstract class ResultStandardizer  extends AbstractMessageTransformer{
 	@Override
 	public Object transformMessage(MuleMessage message, String outputEncoding){
 		Object obj = message.getPayload();
-		message.setPayload(standardize(obj));
+		ApiResult result = standardize(obj);
+		result.settimestamp(System.currentTimeMillis());
+		message.setPayload(result);
 		return message;
 	}
 	
-	abstract protected Object standardize(Object obj);
+	abstract protected ApiResult standardize(Object obj);
 }
