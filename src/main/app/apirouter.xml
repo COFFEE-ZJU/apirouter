@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns:mongo="http://www.mulesoft.org/schema/mule/mongo" xmlns:ws="http://www.mulesoft.org/schema/mule/ws"
-	xmlns:mulexml="http://www.mulesoft.org/schema/mule/xml" xmlns:json="http://www.mulesoft.org/schema/mule/json"
+<mule xmlns:mongo="http://www.mulesoft.org/schema/mule/mongo"
+	xmlns:ws="http://www.mulesoft.org/schema/mule/ws" xmlns:mulexml="http://www.mulesoft.org/schema/mule/xml"
+	xmlns:json="http://www.mulesoft.org/schema/mule/json"
 	xmlns:data-mapper="http://www.mulesoft.org/schema/mule/ee/data-mapper"
 	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core"
 	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
@@ -33,7 +34,8 @@ http://www.mulesoft.org/schema/mule/mongo http://www.mulesoft.org/schema/mule/mo
 			message="The http.request received is #[message.inboundProperties['http.request']] \n
     	The http.query.params received is #[message.inboundProperties['http.query.params']]"
 			level="INFO" doc:name="Logger" />
-        <set-variable variableName="systime" value="#[function:systime]" doc:name="Variable"/>
+		<set-variable variableName="systime" value="#[function:systime]"
+			doc:name="Variable" />
 
 		<flow-ref name="dispatcher" doc:name="Flow Reference" />
 		<!-- custom-transformer class="cn.edu.zju.ccnt.RequestTransformer" doc:name="Java"/ -->
@@ -58,20 +60,29 @@ http://www.mulesoft.org/schema/mule/mongo http://www.mulesoft.org/schema/mule/mo
 					collection="weatherToday" doc:name="Mongo DB">
 				</mongo:find-one-object>
 				<mongo:dbobject-to-json doc:name="Mongo DB" />
-                <json:json-to-object-transformer returnClass="cn.edu.zju.ccnt.weather.WeatherResult" doc:name="JSON to Object"/>
+				<json:json-to-object-transformer
+					returnClass="cn.edu.zju.ccnt.weather.WeatherResult" doc:name="JSON to Object" />
 			</processor-chain>
 			<processor-chain>
-				<custom-transformer class="cn.edu.zju.ccnt.CityName2CityCode"
-					doc:name="Java" />
+				<mongo:find-one-object-using-query-map
+					config-ref="Mongo_DB" collection="cityCode2Name" doc:name="Mongo DB">
+					<mongo:query-attributes>
+						<mongo:query-attribute key="cityName">#[message.inboundProperties['http.query.params'].city]</mongo:query-attribute>
+					</mongo:query-attributes>
+				</mongo:find-one-object-using-query-map>
+                <mongo:db-object-to-map doc:name="Mongo DB"/>
+				<!--custom-transformer class="cn.edu.zju.ccnt.CityName2CityCode"
+					doc:name="Java" /-->
 				<http:outbound-endpoint exchange-pattern="request-response"
 					method="GET"
-					address="http://weather.51wnl.com/weatherinfo/GetMoreWeather?cityCode=#[flowVars.cityCode]&amp;weatherType=0"
+					address="http://weather.51wnl.com/weatherinfo/GetMoreWeather?cityCode=#[payload.cityCode]&amp;weatherType=0"
 					doc:name="HTTP" />
 				<json:json-to-object-transformer
 					returnClass="cn.edu.zju.ccnt.weather._51wnl.WeatherRes" doc:name="JSON to Object" />
 				<custom-transformer
 					class="cn.edu.zju.ccnt.weather._51wnl.StandardizerImpl" doc:name="Java" />
-                <mongo:save-object config-ref="Mongo_DB" collection="weatherToday" doc:name="Mongo DB"/>
+				<mongo:save-object config-ref="Mongo_DB"
+					collection="weatherToday" doc:name="Mongo DB" />
 			</processor-chain>
 			<processor-chain>
 				<data-mapper:transform config-ref="Map_To_Xml_getWeatherbyCityName_"
@@ -87,7 +98,8 @@ http://www.mulesoft.org/schema/mule/mongo http://www.mulesoft.org/schema/mule/mo
 				<custom-transformer
 					class="cn.edu.zju.ccnt.weather.weatherws.StandardizerImpl"
 					doc:name="Java" />
-                <mongo:save-object config-ref="Mongo_DB" collection="weatherToday" doc:name="Mongo DB"/>
+				<mongo:save-object config-ref="Mongo_DB"
+					collection="weatherToday" doc:name="Mongo DB" />
 			</processor-chain>
 
 		</first-successful>
