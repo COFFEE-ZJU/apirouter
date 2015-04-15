@@ -1,13 +1,16 @@
 package cn.edu.zju.ccnt.weather.weatherws;
 
+import com.thoughtworks.xstream.XStream;
+
 import cn.edu.zju.ccnt.ApiResult;
 import cn.edu.zju.ccnt.ResultStandardizer;
 import cn.edu.zju.ccnt.weather.WeatherResult;
 
 public class StandardizerImpl extends ResultStandardizer{
-
+	
 	@Override
-	protected ApiResult standardize(Object obj) {
+	protected ApiResult standardize(String jsonStr) {
+		
 		WeatherResult ret = new WeatherResult();
 		String[] ss = ((GetWeatherbyCityNameResponse)obj).getGetWeatherbyCityNameResult();
 		String[] temps1 = ss[5].split("/");

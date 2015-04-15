@@ -36,6 +36,7 @@ http://www.mulesoft.org/schema/mule/mongo http://www.mulesoft.org/schema/mule/mo
 			level="INFO" doc:name="Logger" />
 		<set-variable variableName="systime" value="#[function:systime]"
 			doc:name="Variable" />
+        <set-variable variableName="timeoutMillis" value="36000000" doc:name="Variable"/>
 
 		<flow-ref name="dispatcher" doc:name="Flow Reference" />
 		<!-- custom-transformer class="cn.edu.zju.ccnt.RequestTransformer" doc:name="Java"/ -->
@@ -46,16 +47,31 @@ http://www.mulesoft.org/schema/mule/mongo http://www.mulesoft.org/schema/mule/mo
 		<http:response-builder status="200"
 			contentType="application/json;charset=utf-8" doc:name="HTTP Response Builder" />
 	</flow>
-
-
-	<sub-flow name="weatherFlow" doc:name="weatherFlow">
-		<first-successful doc:name="First Successful">
-			<processor-chain>
+	
+    <sub-flow name="REST_JSON_InvokeFlow" doc:name="REST_JSON_InvokeFlow">
+        <first-successful doc:name="First Successful">
+        	<processor-chain>
 				<set-payload
 					value="{&quot;city&quot;:&quot;#[message.inboundProperties['http.query.params'].city]&quot;, &quot;timestamp&quot;:{$gte:#[flowVars.systime - 3600000]}}"
 					doc:name="Set Payload" />
 
 				<mongo:json-to-dbobject doc:name="Mongo DB" />
+				<mongo:find-one-object config-ref="Mongo_DB"
+					collection="weatherToday" doc:name="Mongo DB">
+				</mongo:find-one-object>
+				<mongo:dbobject-to-json doc:name="Mongo DB" />
+				<json:json-to-object-transformer
+					returnClass="cn.edu.zju.ccnt.weather.WeatherResult" doc:name="JSON to Object" />
+			</processor-chain>
+        </first-successful>
+    </sub-flow>
+
+
+	<sub-flow name="weatherFlow" doc:name="weatherFlow">
+		<first-successful doc:name="First Successful">
+			<processor-chain>
+                <custom-transformer class="cn.edu.zju.ccnt.MongoQueryGenerator" doc:name="Java"/>
+
 				<mongo:find-one-object config-ref="Mongo_DB"
 					collection="weatherToday" doc:name="Mongo DB">
 				</mongo:find-one-object>
