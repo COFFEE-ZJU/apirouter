@@ -1,18 +1,41 @@
 package cn.edu.zju.ccnt.weather.weatherws;
 
-import com.thoughtworks.xstream.XStream;
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.log4j.Logger;
+import org.codehaus.jackson.JsonParseException;
+import org.codehaus.jackson.map.JsonMappingException;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.mule.api.transformer.TransformerException;
+import org.mule.module.json.transformers.XmlToJson;
+import org.mule.transformer.simple.ByteArrayToHexString;
 
 import cn.edu.zju.ccnt.ApiResult;
 import cn.edu.zju.ccnt.ResultStandardizer;
 import cn.edu.zju.ccnt.weather.WeatherResult;
 
 public class StandardizerImpl extends ResultStandardizer{
+	private static final XmlToJson XML_TO_JSON = new XmlToJson();
+	private static final ByteArrayToHexString ARRAY_TO_HEX_STRING = new ByteArrayToHexString();
+	private static final ObjectMapper MAPPER = new ObjectMapper();
 	
+	@SuppressWarnings("unchecked")
 	@Override
-	protected ApiResult standardize(String jsonStr) {
+	protected ApiResult standardize(Object input) throws TransformerException, JsonParseException, JsonMappingException, IOException {
 		
+//		String json = (String)XML_TO_JSON.transform(ARRAY_TO_HEX_STRING.transform(input));
+		String json = (String)XML_TO_JSON.transform(input);
+		Map<String, Object> resData = MAPPER.readValue(json, Map.class);
+		Logger logger = Logger.getLogger(StandardizerImpl.class);
+		logger.info(resData);
 		WeatherResult ret = new WeatherResult();
-		String[] ss = ((GetWeatherbyCityNameResponse)obj).getGetWeatherbyCityNameResult();
+		resData = (Map<String, Object>)resData.get("ArrayOfString");
+		
+		List<String> list = (List<String>)resData.get("string");
+		String[] ss = {};
+		ss = list.toArray(ss);
 		String[] temps1 = ss[5].split("/");
 		String[] temps2 = ss[12].split("/");
 		String[] temps3 = ss[17].split("/");

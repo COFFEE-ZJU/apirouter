@@ -16,8 +16,15 @@ public class StandardizerImpl extends ResultStandardizer{
 	
 	@SuppressWarnings("unchecked")
 	@Override
-	protected ApiResult standardize(String jsonStr) throws JsonParseException, JsonMappingException, IOException {
-		Map<String, Object> resData = MAPPER.readValue(jsonStr, Map.class);
+	protected ApiResult standardize(Object input) throws JsonParseException, JsonMappingException, IOException {
+		String json;
+		if(input instanceof String){
+			json = (String)input;
+		} else {
+			throw new ClassCastException("failed to cast "+input.getClass().toString());
+		}
+		
+		Map<String, Object> resData = MAPPER.readValue(json, Map.class);
 		resData = (Map<String, Object>)resData.get("weatherinfo");
 		
 		WeatherResult ret = new WeatherResult();
