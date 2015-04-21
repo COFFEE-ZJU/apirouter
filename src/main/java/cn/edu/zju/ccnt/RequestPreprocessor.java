@@ -46,6 +46,7 @@ public class RequestPreprocessor extends AbstractMessageTransformer {
 			throws TransformerException {
 		String reqPath = (String)message.getInboundProperty("http.request");
 		message.setInvocationProperty("systime", System.currentTimeMillis());
+		message.setInvocationProperty("requstParams", message.getInboundProperty("http.query.params"));
 		
 		if(P_WEATHER.matcher(reqPath).matches()){
 			message.setInvocationProperty("requestSpecs", new LinkedList(REQUEST_SPECS));

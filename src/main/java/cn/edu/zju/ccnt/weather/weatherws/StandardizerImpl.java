@@ -10,7 +10,6 @@ import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.mule.api.transformer.TransformerException;
 import org.mule.module.json.transformers.XmlToJson;
-import org.mule.transformer.simple.ByteArrayToHexString;
 
 import cn.edu.zju.ccnt.ApiResult;
 import cn.edu.zju.ccnt.ResultStandardizer;
@@ -18,12 +17,11 @@ import cn.edu.zju.ccnt.weather.WeatherResult;
 
 public class StandardizerImpl extends ResultStandardizer{
 	private static final XmlToJson XML_TO_JSON = new XmlToJson();
-	private static final ByteArrayToHexString ARRAY_TO_HEX_STRING = new ByteArrayToHexString();
 	private static final ObjectMapper MAPPER = new ObjectMapper();
 	
 	@SuppressWarnings("unchecked")
 	@Override
-	protected ApiResult standardize(Object input) throws TransformerException, JsonParseException, JsonMappingException, IOException {
+	public ApiResult standardize(Object input) throws TransformerException, JsonParseException, JsonMappingException, IOException {
 		
 //		String json = (String)XML_TO_JSON.transform(ARRAY_TO_HEX_STRING.transform(input));
 		String json = (String)XML_TO_JSON.transform(input);

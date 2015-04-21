@@ -17,7 +17,7 @@ public class StandardizerImpl extends ResultStandardizer {
 	
 	@SuppressWarnings("unchecked")
 	@Override
-	protected ApiResult standardize(Object input) throws Exception {
+	public ApiResult standardize(Object input) throws Exception {
 		String json;
 		if(input instanceof String){
 			json = (String)input;

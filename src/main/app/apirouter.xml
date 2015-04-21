@@ -51,19 +51,16 @@ http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/m
 
 	<flow name="REST_JSON_InvokeFlow" doc:name="REST_JSON_InvokeFlow">
         <set-variable variableName="requestSpec" value="#[flowVars.requestSpecs.poll()]" doc:name="Variable"/>
-		<custom-transformer
-			class="cn.edu.zju.ccnt.weather._51wnl.RestRequestPramsGeneratorImpl"
-			doc:name="Java" />
+
 		<http:outbound-endpoint exchange-pattern="request-response"
 			method="GET"
-			address="http://#[flowVars.requestSpec.getUrl()]?#[flowVars.paramString]"
+			address="http://#[flowVars.requestSpec.getUrl()]?#[flowVars.requestSpec.getParamsGenerator().generateParamString(flowVars.requstParams)]"
 			doc:name="HTTP" />
 		<byte-array-to-string-transformer
 			doc:name="Byte Array to String" />
 		<logger message="resp #[payload]" level="INFO" doc:name="Logger" />
+        <expression-transformer expression="#[flowVars.requestSpec.getResultStandardizer().standardize(payload)]" doc:name="Expression"/>
 
-		<custom-transformer class="cn.edu.zju.ccnt.weather._51wnl.StandardizerImpl"
-			doc:name="Java" />
 		<mongo:save-object config-ref="Mongo_DB" collection="weatherToday"
 			doc:name="Mongo DB" />
         <catch-exception-strategy doc:name="Catch Exception Strategy:">
@@ -178,7 +175,7 @@ http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/m
 		</otherwise> </choice> <logger message="Response code is #[header:INBOUND:http.status]" 
 		level="INFO" doc:name="Logger"/> </sub-flow -->
 
-	<sub-flow name="dispatcher" doc:name="dispatcher">
+	<!--sub-flow name="dispatcher" doc:name="dispatcher">
 		<choice doc:name="Choice">
 			<when
 				expression="#[message.inboundProperties['http.request'].contains('/weather/')]">
@@ -219,6 +216,6 @@ http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/m
 					doc:name="Java" />
 			</otherwise>
 		</choice>
-	</sub-flow>
+	</sub-flow -->
 
 </mule>

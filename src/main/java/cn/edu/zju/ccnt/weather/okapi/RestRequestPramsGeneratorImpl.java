@@ -7,7 +7,7 @@ import cn.edu.zju.ccnt.RestRequestPramsGenerator;
 public class RestRequestPramsGeneratorImpl extends RestRequestPramsGenerator {
 
 	@Override
-	protected String generateParamString(Map<String, String> params)
+	public String generateParamString(Map<String, String> params)
 			throws Exception {
 		String city = params.get("city");
 		if(city == null) throw new Exception("missing param city");

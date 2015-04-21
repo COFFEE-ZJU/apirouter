@@ -1,11 +1,16 @@
 package cn.edu.zju.ccnt;
 
-public class ErrorResultGenerator extends ResultStandardizer {
+import org.mule.api.MuleMessage;
+import org.mule.api.transformer.TransformerException;
+import org.mule.transformer.AbstractMessageTransformer;
+
+public class ErrorResultGenerator extends AbstractMessageTransformer {
 
 	@Override
-	protected ApiResult standardize(Object input) throws Exception {
-		
-		return new ErrorResult("500", "failed to invoke APIs.");
+	public Object transformMessage(MuleMessage message, String outputEncoding)
+			throws TransformerException {
+		message.setPayload(new ErrorResult("500", "failed to invoke APIs."));
+		return message;
 	}
 
 }

@@ -8,6 +8,10 @@ import com.mongodb.ReflectionDBObject;
 public class ApiResult extends ReflectionDBObject{
 	private long timestamp;
 	
+	public ApiResult(){
+		settimestamp(System.currentTimeMillis());
+	}
+	
 	public long gettimestamp() {
 		return timestamp;
 	}
