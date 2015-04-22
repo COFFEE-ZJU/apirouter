@@ -31,6 +31,7 @@ public abstract class RestRequestPramsGenerator extends AbstractMessageTransform
 	}
 	
 	abstract public String generateParamString(Map<String, String> params) throws Exception;
+//	abstract public Map<String, String> generateParamMap(Map<String, String> params) throws Exception;
 	
 	protected static String mapToParamString(Map<String, String> params){
 		StringBuilder builder = null;

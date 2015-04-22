@@ -19,7 +19,7 @@ public class MongoQueryGenerator extends AbstractMessageTransformer {
 			throws TransformerException {
 		try{
 			@SuppressWarnings("unchecked")
-			Map<String, String> params = (Map<String, String>)message.getInboundProperty("http.query.params");
+			Map<String, String> params = (Map<String, String>)message.getInvocationProperty("requstParams");
 			long timeoutMillis = (long)message.getInvocationProperty("timeoutMillis");
 			long timeout = System.currentTimeMillis() - timeoutMillis;
 			

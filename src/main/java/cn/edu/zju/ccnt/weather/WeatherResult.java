@@ -7,6 +7,7 @@ import cn.edu.zju.ccnt.ApiResult;
 
 @JsonAutoDetect
 @JsonIgnoreProperties(ignoreUnknown = true,value = {"_id","partialObject","timestamp"})
+//@JsonIgnoreProperties(ignoreUnknown = true)
 public class WeatherResult extends ApiResult {
 	private String city;
 	private String date;

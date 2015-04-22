@@ -4,11 +4,10 @@ import java.util.Map;
 
 import org.codehaus.jackson.map.ObjectMapper;
 
-import cn.edu.zju.ccnt.ApiResult;
 import cn.edu.zju.ccnt.ResultStandardizer;
 import cn.edu.zju.ccnt.weather.WeatherResult;
 
-public class StandardizerImpl extends ResultStandardizer {
+public class StandardizerImpl extends ResultStandardizer<WeatherResult> {
 	private static final ObjectMapper MAPPER = new ObjectMapper();
 	private static final String[] WEATHER_INFOS = {"«Á","∂‡‘∆","“ı","’Û”Í","¿◊’Û”Í",
 		"¿◊’Û”Í∞È”–±˘±¢","”Íº–—©","–°”Í","÷–”Í","¥Û”Í","±©”Í","¥Û±©”Í","Ãÿ¥Û±©”Í","’Û—©",
@@ -17,7 +16,8 @@ public class StandardizerImpl extends ResultStandardizer {
 	
 	@SuppressWarnings("unchecked")
 	@Override
-	public ApiResult standardize(Object input) throws Exception {
+	public WeatherResult standardize(Object input, Map<String, String>requestParams) 
+			throws Exception {
 		String json;
 		if(input instanceof String){
 			json = (String)input;

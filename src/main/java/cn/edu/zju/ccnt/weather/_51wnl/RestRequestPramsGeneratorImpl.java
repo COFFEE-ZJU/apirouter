@@ -73,5 +73,5 @@ public class RestRequestPramsGeneratorImpl extends RestRequestPramsGenerator {
 		if(code == null) throw new Exception("failed to find city code from mongoDB for: "+city);
 		
 		return "cityCode="+code+"&weatherType=0";
-	}	
+	}
 }

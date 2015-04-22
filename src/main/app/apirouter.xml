@@ -41,32 +41,50 @@ http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/m
 
 		<flow-ref name="invokeFlowWithMongoCache" doc:name="Flow Reference" />
 		<!-- custom-transformer class="cn.edu.zju.ccnt.RequestTransformer" doc:name="Java"/ -->
-		<json:object-to-json-transformer
-			encoding="UTF-8" doc:name="Object to JSON" />
+
 		<!-- logger message="The http.request after is #[header:INBOUND:http.request] 
 			and method is #[header:INBOUND:http.method]" level="INFO" doc:name="Logger"/ -->
 		<http:response-builder status="200"
 			contentType="application/json;charset=utf-8" doc:name="HTTP Response Builder" />
 	</flow>
+    <sub-flow name="invokeFlowWithMongoCache" doc:name="invokeFlowWithMongoCache">
+        <first-successful doc:name="First Successful">
+            <processor-chain>
+                <custom-transformer class="cn.edu.zju.ccnt.MongoQueryGenerator" doc:name="Java"/>
+                <mongo:find-one-object config-ref="Mongo_DB" collection="#[flowVars.mongoCollectionName]" doc:name="Mongo DB"/>
+                <custom-transformer class="cn.edu.zju.ccnt.Mongo2Json" doc:name="Java"/>
+            </processor-chain>
+            <flow-ref name="REST_JSON_InvokeFlow" doc:name="Flow Reference"/>
+        </first-successful>
+    </sub-flow>
 
 	<flow name="REST_JSON_InvokeFlow" doc:name="REST_JSON_InvokeFlow">
         <set-variable variableName="requestSpec" value="#[flowVars.requestSpecs.poll()]" doc:name="Variable"/>
+        <choice doc:name="Choice">
+            <when expression="#[flowVars.requestSpec.isMethodGet()]">
+                <http:outbound-endpoint exchange-pattern="request-response" method="GET" 
+                address="http://#[flowVars.requestSpec.getUrl()]?#[flowVars.requestSpec.getParamsGenerator().generateParamString(flowVars.requstParams)]" 
+                doc:name="HTTP"/>
+            </when>
+            <otherwise>
+                <set-payload value="#[flowVars.requestSpec.getParamsGenerator().generateParamString(flowVars.requstParams)]" doc:name="Set Payload"/>
+                <http:outbound-endpoint exchange-pattern="request-response" method="POST" 
+                address="http://#[flowVars.requestSpec.getUrl()]" 
+                doc:name="HTTP" contentType="application/x-www-form-urlencoded"/>
+            </otherwise>
+        </choice>
+        <byte-array-to-string-transformer doc:name="Byte Array to String"/>
+        <logger message="resp #[payload]" level="INFO" doc:name="Logger"/>
+        <expression-transformer expression="#[flowVars.requestSpec.getResultStandardizer().standardize(payload,flowVars.requstParams)]" doc:name="Expression"/>
 
-		<http:outbound-endpoint exchange-pattern="request-response"
-			method="GET"
-			address="http://#[flowVars.requestSpec.getUrl()]?#[flowVars.requestSpec.getParamsGenerator().generateParamString(flowVars.requstParams)]"
-			doc:name="HTTP" />
-		<byte-array-to-string-transformer
-			doc:name="Byte Array to String" />
-		<logger message="resp #[payload]" level="INFO" doc:name="Logger" />
-        <expression-transformer expression="#[flowVars.requestSpec.getResultStandardizer().standardize(payload)]" doc:name="Expression"/>
-
-		<mongo:save-object config-ref="Mongo_DB" collection="weatherToday"
+		<mongo:save-object config-ref="Mongo_DB" collection="#[flowVars.mongoCollectionName]"
 			doc:name="Mongo DB" />
+        <json:object-to-json-transformer doc:name="Object to JSON"/>
         <catch-exception-strategy doc:name="Catch Exception Strategy:">
             <choice doc:name="Choice">
                 <when expression="#[flowVars.requestSpecs.isEmpty()]">
                     <custom-transformer class="cn.edu.zju.ccnt.ErrorResultGenerator" doc:name="Java"/>
+                    <json:object-to-json-transformer doc:name="Object to JSON"/>
                 </when>
                 <otherwise>
                     <flow-ref name="REST_JSON_InvokeFlow" doc:name="Flow Reference"/>
@@ -74,93 +92,6 @@ http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/m
             </choice>
         </catch-exception-strategy>
 	</flow>
-
-
-	<sub-flow name="invokeFlowWithMongoCache" doc:name="invokeFlowWithMongoCache">
-		<first-successful doc:name="First Successful">
-			<processor-chain>
-				<custom-transformer class="cn.edu.zju.ccnt.MongoQueryGenerator"
-					doc:name="Java" />
-				<mongo:find-one-object config-ref="Mongo_DB"
-					collection="#[flowVars.mongoCollectionName]" doc:name="Mongo DB">
-				</mongo:find-one-object>
-				<mongo:dbobject-to-json doc:name="Mongo DB" />
-				<json:json-to-object-transformer
-					returnClass="cn.edu.zju.ccnt.weather.WeatherResult" doc:name="JSON to Object" />
-			</processor-chain>
-			<flow-ref name="REST_JSON_InvokeFlow" doc:name="Flow Reference"/>
-			<!--processor-chain>
-				<custom-transformer
-					class="cn.edu.zju.ccnt.weather._51wnl.RestRequestPramsGeneratorImpl"
-					doc:name="Java" />
-				<http:outbound-endpoint exchange-pattern="request-response"
-					method="GET"
-					address="http://weather.51wnl.com/weatherinfo/GetMoreWeather?#[flowVars.paramString]"
-					doc:name="HTTP" />
-				<byte-array-to-string-transformer
-					doc:name="Byte Array to String" />
-				<logger message="resp #[payload]" level="INFO" doc:name="Logger" />
-
-				<custom-transformer
-					class="cn.edu.zju.ccnt.weather._51wnl.StandardizerImpl" doc:name="Java" />
-				<mongo:save-object config-ref="Mongo_DB"
-					collection="weatherToday" doc:name="Mongo DB" />
-			</processor-chain>
-			<processor-chain>
-				<custom-transformer
-					class="cn.edu.zju.ccnt.weather.okapi.RestRequestPramsGeneratorImpl"
-					doc:name="Java" />
-				<http:outbound-endpoint exchange-pattern="request-response"
-					method="GET"
-					address="http://api.rocliu.net/api/weatherweek?#[flowVars.paramString]"
-					doc:name="HTTP" />
-				<byte-array-to-string-transformer
-					doc:name="Byte Array to String" />
-				<logger message="resp #[payload]" level="INFO" doc:name="Logger" />
-				<custom-transformer class="cn.edu.zju.ccnt.weather.okapi.StandardizerImpl"
-					doc:name="Java" />
-				<mongo:save-object config-ref="Mongo_DB"
-					collection="weatherToday" doc:name="Mongo DB" />
-			</processor-chain>
-			<processor-chain>
-				<mongo:find-one-object-using-query-map
-					config-ref="Mongo_DB" collection="cityName2Code" doc:name="Mongo DB">
-					<mongo:query-attributes>
-						<mongo:query-attribute key="cityName">#[message.inboundProperties['http.query.params'].city]</mongo:query-attribute>
-					</mongo:query-attributes>
-				</mongo:find-one-object-using-query-map>
-				<mongo:db-object-to-map doc:name="Mongo DB" />
-				<custom-transformer class="cn.edu.zju.ccnt.CityName2CityCode"
-					doc:name="Java" />
-				<http:outbound-endpoint exchange-pattern="request-response"
-					method="GET"
-					address="http://weather.51wnl.com/weatherinfo/GetMoreWeather?cityCode=#[payload.cityCode]&amp;weatherType=0"
-					doc:name="HTTP" />
-				<custom-transformer
-					class="cn.edu.zju.ccnt.weather._51wnl.StandardizerImpl" doc:name="Java" />
-				<mongo:save-object config-ref="Mongo_DB"
-					collection="weatherToday" doc:name="Mongo DB" />
-			</processor-chain>
-			<processor-chain>
-				<custom-transformer
-					class="cn.edu.zju.ccnt.weather.weatherws.RestRequestPramsGeneratorImpl"
-					doc:name="Java" />
-				<http:outbound-endpoint exchange-pattern="request-response"
-					method="GET"
-					address="http://webservice.webxml.com.cn/WebServices/WeatherWebService.asmx/getWeatherbyCityName?#[flowVars.paramString]"
-					doc:name="HTTP" />
-				<byte-array-to-string-transformer
-					doc:name="Byte Array to String" />
-				<logger message="resp #[payload]" level="INFO" doc:name="Logger" />
-				<custom-transformer
-					class="cn.edu.zju.ccnt.weather.weatherws.StandardizerImpl"
-					doc:name="Java" />
-				<mongo:save-object config-ref="Mongo_DB"
-					collection="weatherToday" doc:name="Mongo DB" />
-			</processor-chain -->
-
-		</first-successful>
-	</sub-flow>
 
 	<!-- sub-flow name="invokeService" doc:name="invokeService"> <choice doc:name="Choice"> 
 		<when expression="#[flowVars.hasFormatError]"> <set-payload value="{&quot;success&quot;:false,&quot;reason&quot;:&quot;#[flowVars.formatErrReason]&quot;}" 

@@ -4,10 +4,10 @@ import java.util.Map;
 
 import org.apache.log4j.Logger;
 
-public abstract class ResultStandardizer{
+public abstract class ResultStandardizer<T extends ApiResult>{
 	private static final Logger LOGGER = Logger.getLogger(ResultStandardizer.class);
 	
-	abstract public ApiResult standardize(Object input) throws Exception;
+	abstract public T standardize(Object input, Map<String, String>requestParams) throws Exception;
 	
 	@SuppressWarnings("unchecked")
 	protected static Object getMapObjByPath(Map<String, Object> map, String[] path) throws NoSuchFieldException{

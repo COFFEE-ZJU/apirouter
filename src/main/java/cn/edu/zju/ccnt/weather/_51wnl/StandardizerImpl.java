@@ -11,12 +11,13 @@ import cn.edu.zju.ccnt.ApiResult;
 import cn.edu.zju.ccnt.ResultStandardizer;
 import cn.edu.zju.ccnt.weather.WeatherResult;
 
-public class StandardizerImpl extends ResultStandardizer{
+public class StandardizerImpl extends ResultStandardizer<WeatherResult>{
 	private static final ObjectMapper MAPPER = new ObjectMapper();
 	
 	@SuppressWarnings("unchecked")
 	@Override
-	public ApiResult standardize(Object input) throws JsonParseException, JsonMappingException, IOException {
+	public WeatherResult standardize(Object input, Map<String, String>requestParams) 
+			throws JsonParseException, JsonMappingException, IOException {
 		String json;
 		if(input instanceof String){
 			json = (String)input;

@@ -11,17 +11,17 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.mule.api.transformer.TransformerException;
 import org.mule.module.json.transformers.XmlToJson;
 
-import cn.edu.zju.ccnt.ApiResult;
 import cn.edu.zju.ccnt.ResultStandardizer;
 import cn.edu.zju.ccnt.weather.WeatherResult;
 
-public class StandardizerImpl extends ResultStandardizer{
+public class StandardizerImpl extends ResultStandardizer<WeatherResult>{
 	private static final XmlToJson XML_TO_JSON = new XmlToJson();
 	private static final ObjectMapper MAPPER = new ObjectMapper();
 	
 	@SuppressWarnings("unchecked")
 	@Override
-	public ApiResult standardize(Object input) throws TransformerException, JsonParseException, JsonMappingException, IOException {
+	public WeatherResult standardize(Object input, Map<String, String>requestParams) 
+			throws TransformerException, JsonParseException, JsonMappingException, IOException {
 		
 //		String json = (String)XML_TO_JSON.transform(ARRAY_TO_HEX_STRING.transform(input));
 		String json = (String)XML_TO_JSON.transform(input);

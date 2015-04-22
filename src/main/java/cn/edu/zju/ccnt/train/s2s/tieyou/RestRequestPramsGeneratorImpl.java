@@ -1,17 +1,17 @@
-package cn.edu.zju.ccnt.weather.okapi;
+package cn.edu.zju.ccnt.train.s2s.tieyou;
 
 import java.util.Map;
 
+import org.apache.log4j.Logger;
 import cn.edu.zju.ccnt.RestRequestPramsGenerator;
 
 public class RestRequestPramsGeneratorImpl extends RestRequestPramsGenerator {
+	private static final Logger LOGGER = Logger.getLogger(RestRequestPramsGeneratorImpl.class);
 
 	@Override
 	public String generateParamString(Map<String, String> params)
 			throws Exception {
-		String city = params.get("city");
-		if(city == null) throw new Exception("missing param city");
-		
-		return "city=" + city;
+		return "param=dataApi/zhanzhanYuding.html&"+mapToParamString(params);
 	}
+
 }
