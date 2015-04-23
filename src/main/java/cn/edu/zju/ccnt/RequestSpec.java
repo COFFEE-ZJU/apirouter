@@ -1,14 +1,14 @@
 package cn.edu.zju.ccnt;
 
-public class RequestSpec {
+public class RequestSpec<T extends ApiResult> {
 	public static enum HttpMethodType {GET, POST, PUT}; 
 	private String url;
 	private RestRequestPramsGenerator paramsGenerator;
-	private ResultStandardizer resultStandardizer;
+	private ResultStandardizer<T> resultStandardizer;
 	private HttpMethodType methodType;
 	
 	public RequestSpec(String url, RestRequestPramsGenerator paramsGenerator,
-			ResultStandardizer resultStandardizer, HttpMethodType methodType) {
+			ResultStandardizer<T> resultStandardizer, HttpMethodType methodType) {
 		this.url = url;
 		this.paramsGenerator = paramsGenerator;
 		this.resultStandardizer = resultStandardizer;
@@ -23,7 +23,7 @@ public class RequestSpec {
 		return paramsGenerator;
 	}
 
-	public ResultStandardizer getResultStandardizer() {
+	public ResultStandardizer<T> getResultStandardizer() {
 		return resultStandardizer;
 	}
 	
