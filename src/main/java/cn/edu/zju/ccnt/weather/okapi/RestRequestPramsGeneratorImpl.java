@@ -12,6 +12,6 @@ public class RestRequestPramsGeneratorImpl extends RestRequestPramsGenerator {
 		String city = params.get("city");
 		if(city == null) throw new Exception("missing param city");
 		
-		return "city=" + city;
+		return "?city=" + city;
 	}
 }

@@ -72,13 +72,15 @@ public class RequestPreprocessor extends AbstractMessageTransformer {
 		switch (reqPath) {
 		case WEATHER_PATH:
 			message.setInvocationProperty("requestSpecs", new LinkedList(WEATHER_REQUEST_SPECS));
+			
+			message.setInvocationProperty("needsCache", true);
 			message.setInvocationProperty("mongoCollectionName", "weatherToday");
 			message.setInvocationProperty("timeoutMillis", TimeUnit.HOURS.toMillis(1));
 			break;
 		case TRAIN_S2S_PATH:
 			message.setInvocationProperty("requestSpecs", new LinkedList(TRAIN_S2S_REQUEST_SPECS));
-			message.setInvocationProperty("mongoCollectionName", "trainStation2Station");
-			message.setInvocationProperty("timeoutMillis", TimeUnit.SECONDS.toMillis(5));
+			
+			message.setInvocationProperty("needsCache", false);
 			break;
 
 		default:

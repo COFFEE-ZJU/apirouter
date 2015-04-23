@@ -38,8 +38,15 @@ http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/m
     	The http.query.params received is #[message.inboundProperties['http.query.params']]"
 			level="INFO" doc:name="Logger" />
         <custom-transformer class="cn.edu.zju.ccnt.RequestPreprocessor" doc:name="Java"/>
+        <choice doc:name="Choice">
+            <when expression="#[flowVars.needsCache]">
+                <flow-ref name="invokeFlowWithMongoCache" doc:name="Flow Reference"/>
+            </when>
+            <otherwise>
+                <flow-ref name="REST_JSON_InvokeFlow" doc:name="Flow Reference"/>
+            </otherwise>
+        </choice>
 
-		<flow-ref name="invokeFlowWithMongoCache" doc:name="Flow Reference" />
 		<!-- custom-transformer class="cn.edu.zju.ccnt.RequestTransformer" doc:name="Java"/ -->
 
 		<!-- logger message="The http.request after is #[header:INBOUND:http.request] 
@@ -57,29 +64,29 @@ http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/m
             <flow-ref name="REST_JSON_InvokeFlow" doc:name="Flow Reference"/>
         </first-successful>
     </sub-flow>
-
-	<flow name="REST_JSON_InvokeFlow" doc:name="REST_JSON_InvokeFlow">
+    <flow name="REST_JSON_InvokeFlow" doc:name="REST_JSON_InvokeFlow">
         <set-variable variableName="requestSpec" value="#[flowVars.requestSpecs.poll()]" doc:name="Variable"/>
         <choice doc:name="Choice">
             <when expression="#[flowVars.requestSpec.isMethodGet()]">
-                <http:outbound-endpoint exchange-pattern="request-response" method="GET" 
-                address="http://#[flowVars.requestSpec.getUrl()]?#[flowVars.requestSpec.getParamsGenerator().generateParamString(flowVars.requstParams)]" 
-                doc:name="HTTP"/>
+                <http:outbound-endpoint exchange-pattern="request-response" method="GET" address="http://#[flowVars.requestSpec.getUrl()]#[flowVars.requestSpec.getParamsGenerator().generateParamString(flowVars.requstParams)]" doc:name="HTTP"/>
             </when>
             <otherwise>
                 <set-payload value="#[flowVars.requestSpec.getParamsGenerator().generateParamString(flowVars.requstParams)]" doc:name="Set Payload"/>
-                <http:outbound-endpoint exchange-pattern="request-response" method="POST" 
-                address="http://#[flowVars.requestSpec.getUrl()]" 
-                doc:name="HTTP" contentType="application/x-www-form-urlencoded"/>
+                <http:outbound-endpoint exchange-pattern="request-response" method="POST" address="http://#[flowVars.requestSpec.getUrl()]" contentType="application/x-www-form-urlencoded" doc:name="HTTP"/>
             </otherwise>
         </choice>
         <byte-array-to-string-transformer doc:name="Byte Array to String"/>
         <logger message="resp #[payload]" level="INFO" doc:name="Logger"/>
         <expression-transformer expression="#[flowVars.requestSpec.getResultStandardizer().standardize(payload,flowVars.requstParams)]" doc:name="Expression"/>
-
-		<mongo:save-object config-ref="Mongo_DB" collection="#[flowVars.mongoCollectionName]"
-			doc:name="Mongo DB" />
-        <json:object-to-json-transformer doc:name="Object to JSON"/>
+        <choice doc:name="Choice">
+            <when expression="#[flowVars.needsCache]">
+                <mongo:save-object config-ref="Mongo_DB" collection="#[flowVars.mongoCollectionName]" doc:name="Mongo DB"/>
+                <json:object-to-json-transformer doc:name="Object to JSON"/>
+            </when>
+            <otherwise>
+                <json:object-to-json-transformer doc:name="Object to JSON"/>
+            </otherwise>
+        </choice>
         <catch-exception-strategy doc:name="Catch Exception Strategy:">
             <choice doc:name="Choice">
                 <when expression="#[flowVars.requestSpecs.isEmpty()]">
@@ -91,7 +98,7 @@ http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/m
                 </otherwise>
             </choice>
         </catch-exception-strategy>
-	</flow>
+    </flow>
 
 	<!-- sub-flow name="invokeService" doc:name="invokeService"> <choice doc:name="Choice"> 
 		<when expression="#[flowVars.hasFormatError]"> <set-payload value="{&quot;success&quot;:false,&quot;reason&quot;:&quot;#[flowVars.formatErrReason]&quot;}" 

@@ -11,7 +11,7 @@ public class RestRequestPramsGeneratorImpl extends RestRequestPramsGenerator {
 	@Override
 	public String generateParamString(Map<String, String> params)
 			throws Exception {
-		return "param=dataApi/zhanzhanYuding.html&"+mapToParamString(params);
+		return "?param=dataApi/zhanzhanYuding.html&"+mapToParamString(params);
 	}
 
 }
