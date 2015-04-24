@@ -1,64 +1,164 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking" xmlns:data-mapper="http://www.mulesoft.org/schema/mule/ee/data-mapper" xmlns:pattern="http://www.mulesoft.org/schema/mule/pattern"
-	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+<mule xmlns:mongo="http://www.mulesoft.org/schema/mule/mongo"
+	xmlns:ws="http://www.mulesoft.org/schema/mule/ws" xmlns:mulexml="http://www.mulesoft.org/schema/mule/xml"
+	xmlns:json="http://www.mulesoft.org/schema/mule/json"
+	xmlns:data-mapper="http://www.mulesoft.org/schema/mule/ee/data-mapper"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
 	xmlns:spring="http://www.springframework.org/schema/beans" version="EE-3.5.1"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/pattern http://www.mulesoft.org/schema/mule/pattern/current/mule-pattern.xsd
+	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ws http://www.mulesoft.org/schema/mule/ws/current/mule-ws.xsd
 http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
-http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
-http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
 http://www.mulesoft.org/schema/mule/ee/data-mapper http://www.mulesoft.org/schema/mule/ee/data-mapper/current/mule-data-mapper.xsd
-http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/mule/ee/tracking/current/mule-tracking-ee.xsd">
-    
-    <flow name="apirouter" doc:name="apirouter">
-    	<http:inbound-endpoint address="http://localhost:8081" exchange-pattern="request-response" doc:name="HTTP"/>
-    	<logger message="The http.request received is #[message.inboundProperties['http.request']] \n
-    	The http.query.params received is #[message.inboundProperties['http.query.params']]" level="INFO" doc:name="Logger"/>
-        <choice doc:name="Choice">
-            <when expression="#[message.inboundProperties['http.request'].contains('/weather/')]">
-                <custom-transformer class="cn.edu.zju.ccnt.WeatherRequestTransformer" doc:name="Java"/>
-            </when>
-            <when expression="#[message.inboundProperties['http.request'].contains('/train/')]">
-                <custom-transformer class="cn.edu.zju.ccnt.TrainRequestTransformer" doc:name="Java"/>
-            </when>
-            <when expression="#[message.inboundProperties['http.request'].contains('/flight/')]">
-                <custom-transformer class="cn.edu.zju.ccnt.FlightRequestTransformer" doc:name="Java"/>
-            </when>
-            <when expression="#[message.inboundProperties['http.request'].contains('/bus/')]">
-                <custom-transformer class="cn.edu.zju.ccnt.BusRequestTransformer" doc:name="Java"/>
-            </when>
-            <when expression="#[message.inboundProperties['http.request'].contains('/taxi/')]">
-                <custom-transformer class="cn.edu.zju.ccnt.TaxiRequestTransformer" doc:name="Java"/>
-            </when>
-            <when expression="#[message.inboundProperties['http.request'].contains('/hotel/')]">
-                <custom-transformer class="cn.edu.zju.ccnt.HotelRequestTransformer" doc:name="Java"/>
-            </when>
-            <when expression="#[message.inboundProperties['http.request'].contains('/restaurant/')]">
-                <custom-transformer class="cn.edu.zju.ccnt.RestaurantRequestTransformer" doc:name="Java"/>
-            </when>
-            <otherwise>
-                <custom-transformer class="cn.edu.zju.ccnt.DefaultRequestTransformer" doc:name="Java"/>
-            </otherwise>
-        </choice>
-        <!-- custom-transformer class="cn.edu.zju.ccnt.RequestTransformer" doc:name="Java"/ -->
+http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/json/current/mule-json.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/xml http://www.mulesoft.org/schema/mule/xml/current/mule-xml.xsd
+http://www.mulesoft.org/schema/mule/mongo http://www.mulesoft.org/schema/mule/mongo/current/mule-mongo.xsd">
+	<ws:consumer-config name="Web_Service_Consumer"
+		wsdlLocation="WeatherWebService.wsdl" service="WeatherWebService"
+		port="WeatherWebServiceSoap"
+		serviceAddress="http://webservice.webxml.com.cn/WebServices/WeatherWebService.asmx"
+		doc:name="Web Service Consumer" />
+	<data-mapper:config name="Map_To_Xml_getWeatherbyCityName_"
+		transformationGraphPath="map_to_xml_getweatherbycityname_.grf"
+		doc:name="Map_To_Xml_getWeatherbyCityName_" />
+	<mongo:config name="Mongo_DB" database="muledb" doc:name="Mongo DB"
+		host="127.0.0.1" password="123456" username="mule" />
 
-        <choice doc:name="Choice">
-        	<when expression="#[flowVars.hasFormatError]">
-        		<set-payload value="{&quot;success&quot;:false,&quot;reason&quot;:&quot;#[flowVars.formatErrReason]&quot;}" doc:name="Set Payload"></set-payload>
-        	</when>
-            <when expression="#[flowVars.httpMethod.equals('GET')]">
-                <http:outbound-endpoint exchange-pattern="request-response" method="GET" address="http://#[flowVars.reqHost]#[flowVars.reqPath]" doc:name="HTTP" />
-            </when>
-            <when expression="#[flowVars.httpMethod.equals('POST')]">
-            	<http:outbound-endpoint exchange-pattern="request-response" method="POST" contentType="application/x-www-form-urlencoded" 
-                address="http://#[flowVars.reqHost]#[flowVars.reqPath]" doc:name="HTTP"/>
-            </when>
-            <otherwise>
-                <http:outbound-endpoint exchange-pattern="request-response" method="PUT" address="http://#[flowVars.reqHost]#[flowVars.reqPath]" doc:name="HTTP"/>
-            </otherwise>
-        </choice>
-        <logger message="The http.request after is #[header:INBOUND:http.request] and method is #[header:INBOUND:http.method]" level="INFO" doc:name="Logger"/>
-    </flow>
-    
+	<flow name="apirouter" doc:name="apirouter">
+		<http:inbound-endpoint address="http://localhost:8081"
+			exchange-pattern="request-response" doc:name="HTTP" />
+		<logger
+			message="The http.request received is #[message.inboundProperties['http.request']] \n
+    	The http.query.params received is #[message.inboundProperties['http.query.params']]"
+			level="INFO" doc:name="Logger" />
+		<set-variable variableName="systime" value="#[function:systime]"
+			doc:name="Variable" />
+
+		<flow-ref name="dispatcher" doc:name="Flow Reference" />
+		<!-- custom-transformer class="cn.edu.zju.ccnt.RequestTransformer" doc:name="Java"/ -->
+		<json:object-to-json-transformer
+			encoding="UTF-8" doc:name="Object to JSON" />
+		<!-- logger message="The http.request after is #[header:INBOUND:http.request] 
+			and method is #[header:INBOUND:http.method]" level="INFO" doc:name="Logger"/ -->
+		<http:response-builder status="200"
+			contentType="application/json;charset=utf-8" doc:name="HTTP Response Builder" />
+	</flow>
+
+
+	<sub-flow name="weatherFlow" doc:name="weatherFlow">
+		<first-successful doc:name="First Successful">
+			<processor-chain>
+				<set-payload
+					value="{&quot;city&quot;:&quot;#[message.inboundProperties['http.query.params'].city]&quot;, &quot;timestamp&quot;:{$gte:#[flowVars.systime - 3600000]}}"
+					doc:name="Set Payload" />
+
+				<mongo:json-to-dbobject doc:name="Mongo DB" />
+				<mongo:find-one-object config-ref="Mongo_DB"
+					collection="weatherToday" doc:name="Mongo DB">
+				</mongo:find-one-object>
+				<mongo:dbobject-to-json doc:name="Mongo DB" />
+				<json:json-to-object-transformer
+					returnClass="cn.edu.zju.ccnt.weather.WeatherResult" doc:name="JSON to Object" />
+			</processor-chain>
+			<processor-chain>
+				<mongo:find-one-object-using-query-map
+					config-ref="Mongo_DB" collection="cityCode2Name" doc:name="Mongo DB">
+					<mongo:query-attributes>
+						<mongo:query-attribute key="cityName">#[message.inboundProperties['http.query.params'].city]</mongo:query-attribute>
+					</mongo:query-attributes>
+				</mongo:find-one-object-using-query-map>
+                <mongo:db-object-to-map doc:name="Mongo DB"/>
+				<!--custom-transformer class="cn.edu.zju.ccnt.CityName2CityCode"
+					doc:name="Java" /-->
+				<http:outbound-endpoint exchange-pattern="request-response"
+					method="GET"
+					address="http://weather.51wnl.com/weatherinfo/GetMoreWeather?cityCode=#[payload.cityCode]&amp;weatherType=0"
+					doc:name="HTTP" />
+				<json:json-to-object-transformer
+					returnClass="cn.edu.zju.ccnt.weather._51wnl.WeatherRes" doc:name="JSON to Object" />
+				<custom-transformer
+					class="cn.edu.zju.ccnt.weather._51wnl.StandardizerImpl" doc:name="Java" />
+				<mongo:save-object config-ref="Mongo_DB"
+					collection="weatherToday" doc:name="Mongo DB" />
+			</processor-chain>
+			<processor-chain>
+				<data-mapper:transform config-ref="Map_To_Xml_getWeatherbyCityName_"
+					input-ref="#[message.inboundProperties[&quot;http.query.params&quot;]]"
+					doc:name="Map To Xml&lt;getWeatherbyCityName&gt;" />
+				<ws:consumer config-ref="Web_Service_Consumer"
+					operation="getWeatherbyCityName" doc:name="Web Service Consumer" />
+				<mulexml:xml-to-object-transformer
+					doc:name="XML to Object">
+					<mulexml:alias name="getWeatherbyCityNameResponse"
+						class="cn.edu.zju.ccnt.weather.weatherws.GetWeatherbyCityNameResponse" />
+				</mulexml:xml-to-object-transformer>
+				<custom-transformer
+					class="cn.edu.zju.ccnt.weather.weatherws.StandardizerImpl"
+					doc:name="Java" />
+				<mongo:save-object config-ref="Mongo_DB"
+					collection="weatherToday" doc:name="Mongo DB" />
+			</processor-chain>
+
+		</first-successful>
+	</sub-flow>
+
+	<!-- sub-flow name="invokeService" doc:name="invokeService"> <choice doc:name="Choice"> 
+		<when expression="#[flowVars.hasFormatError]"> <set-payload value="{&quot;success&quot;:false,&quot;reason&quot;:&quot;#[flowVars.formatErrReason]&quot;}" 
+		doc:name="Set Payload"/> </when> <when expression="#[flowVars.httpMethod.equals('GET')]"> 
+		<http:outbound-endpoint exchange-pattern="request-response" method="GET" 
+		address="http://#[flowVars.reqHost]#[flowVars.reqPath]" doc:name="HTTP"/> 
+		</when> <when expression="#[flowVars.httpMethod.equals('POST')]"> <http:outbound-endpoint 
+		exchange-pattern="request-response" method="POST" address="http://#[flowVars.reqHost]#[flowVars.reqPath]" 
+		contentType="application/x-www-form-urlencoded" doc:name="HTTP"/> </when> 
+		<otherwise> <http:outbound-endpoint exchange-pattern="request-response" method="PUT" 
+		address="http://#[flowVars.reqHost]#[flowVars.reqPath]" doc:name="HTTP"/> 
+		</otherwise> </choice> <logger message="Response code is #[header:INBOUND:http.status]" 
+		level="INFO" doc:name="Logger"/> </sub-flow -->
+
+	<sub-flow name="dispatcher" doc:name="dispatcher">
+		<choice doc:name="Choice">
+			<when
+				expression="#[message.inboundProperties['http.request'].contains('/weather/')]">
+				<flow-ref name="weatherFlow" doc:name="Flow Reference" />
+			</when>
+			<when
+				expression="#[message.inboundProperties['http.request'].contains('/train/')]">
+				<custom-transformer class="cn.edu.zju.ccnt.TrainRequestTransformer"
+					doc:name="Java" />
+			</when>
+			<when
+				expression="#[message.inboundProperties['http.request'].contains('/flight/')]">
+				<custom-transformer class="cn.edu.zju.ccnt.FlightRequestTransformer"
+					doc:name="Java" />
+			</when>
+			<when
+				expression="#[message.inboundProperties['http.request'].contains('/bus/')]">
+				<custom-transformer class="cn.edu.zju.ccnt.BusRequestTransformer"
+					doc:name="Java" />
+			</when>
+			<when
+				expression="#[message.inboundProperties['http.request'].contains('/taxi/')]">
+				<custom-transformer class="cn.edu.zju.ccnt.TaxiRequestTransformer"
+					doc:name="Java" />
+			</when>
+			<when
+				expression="#[message.inboundProperties['http.request'].contains('/hotel/')]">
+				<custom-transformer class="cn.edu.zju.ccnt.HotelRequestTransformer"
+					doc:name="Java" />
+			</when>
+			<when
+				expression="#[message.inboundProperties['http.request'].contains('/restaurant/')]">
+				<custom-transformer class="cn.edu.zju.ccnt.RestaurantRequestTransformer"
+					doc:name="Java" />
+			</when>
+			<otherwise>
+				<custom-transformer class="cn.edu.zju.ccnt.DefaultRequestTransformer"
+					doc:name="Java" />
+			</otherwise>
+		</choice>
+	</sub-flow>
+
 </mule>
