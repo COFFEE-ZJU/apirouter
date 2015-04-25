@@ -6,6 +6,12 @@ import org.apache.log4j.Logger;
 
 public abstract class ResultStandardizer<T extends ApiResult>{
 	private static final Logger LOGGER = Logger.getLogger(ResultStandardizer.class);
+//	protected static final ObjectMapper MAPPER = new ObjectMapper();
+//	
+//	public String getResultString(Object input, Map<String, String>requestParams) throws Exception{
+//		T res = standardize(input, requestParams);
+//		return MAPPER.writeValueAsString(res);
+//	}
 	
 	abstract public T standardize(Object input, Map<String, String>requestParams) throws Exception;
 	

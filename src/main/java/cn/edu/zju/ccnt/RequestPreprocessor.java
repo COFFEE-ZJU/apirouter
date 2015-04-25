@@ -2,6 +2,7 @@ package cn.edu.zju.ccnt;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
@@ -12,8 +13,10 @@ import org.mule.config.i18n.CoreMessages;
 import org.mule.config.i18n.Message;
 import org.mule.transformer.AbstractMessageTransformer;
 
+import cn.edu.zju.ccnt.ParamsValidator.ParamsValidationException;
 import cn.edu.zju.ccnt.RequestSpec.HttpMethodType;
 import cn.edu.zju.ccnt.train.Station2StationResult;
+import cn.edu.zju.ccnt.train.TrainNumberInfoResult;
 import cn.edu.zju.ccnt.weather.WeatherResult;
 
 import edu.emory.mathcs.backport.java.util.LinkedList;
@@ -30,9 +33,15 @@ public class RequestPreprocessor extends AbstractMessageTransformer {
 //	private static final Pattern P_TAXI = Pattern.compile("/taxi/q\\?.*");
 	
 	private static final String WEATHER_PATH = "/weather";
+	private static final ParamsValidator WEATHER_VALIDATOR = 
+			ParamsValidatorFactory.generateParamsValidatorByFields(new String[]{"city"}, null, false);
 	private static final String FLIGHT_PATH = "/flight";
 	private static final String TRAIN_S2S_PATH = "/train/s2s";
+	private static final ParamsValidator TRAIN_S2S_VALIDATOR = 
+			ParamsValidatorFactory.generateParamsValidatorByFields(new String[]{"date","from","to"}, null, false);
 	private static final String TRAIN_TNO_PATH = "/train/trainno";
+	private static final ParamsValidator TRAIN_TNO_VALIDATOR = 
+			ParamsValidatorFactory.generateParamsValidatorByFields(new String[]{"date","trainno"}, null, false);
 	private static final String HOTEL_PATH = "/hotel";
 	private static final String RESTAURANT_PATH = "/restaurant";
 	private static final String TAXI_PATH = "/taxi";
@@ -41,6 +50,7 @@ public class RequestPreprocessor extends AbstractMessageTransformer {
 	
 	private static final List<RequestSpec<WeatherResult>> WEATHER_REQUEST_SPECS = new ArrayList<RequestSpec<WeatherResult>>();
 	private static final List<RequestSpec<Station2StationResult>> TRAIN_S2S_REQUEST_SPECS = new ArrayList<RequestSpec<Station2StationResult>>();
+	private static final List<RequestSpec<TrainNumberInfoResult>> TRAIN_NO_REQUEST_SPECS = new ArrayList<RequestSpec<TrainNumberInfoResult>>();
 	static{
 		WEATHER_REQUEST_SPECS.add(new RequestSpec<WeatherResult>(
 				"weather.51wnl.com/weatherinfo/GetMoreWeather", 
@@ -61,6 +71,11 @@ public class RequestPreprocessor extends AbstractMessageTransformer {
 				"m.tieyou.com/jy/index.php", 
 				new cn.edu.zju.ccnt.train.s2s.tieyou.RestRequestPramsGeneratorImpl(), 
 				new cn.edu.zju.ccnt.train.s2s.tieyou.StandardizerImpl(), HttpMethodType.GET));
+		
+		TRAIN_NO_REQUEST_SPECS.add(new RequestSpec<TrainNumberInfoResult>(
+				"m.tieyou.com/jy/index.php", 
+				new cn.edu.zju.ccnt.train.trainno.tieyou.RestRequestPramsGeneratorImpl(), 
+				new cn.edu.zju.ccnt.train.trainno.tieyou.StandardizerImpl(), HttpMethodType.GET));
 	}
 
 	@Override
@@ -69,27 +84,50 @@ public class RequestPreprocessor extends AbstractMessageTransformer {
 //		String reqPath = (String)message.getInboundProperty("http.request");
 		String reqPath = (String)message.getInboundProperty("http.request.path");
 		message.setInvocationProperty("systime", System.currentTimeMillis());
-		message.setInvocationProperty("requstParams", message.getInboundProperty("http.query.params"));
 		
-		switch (reqPath) {
-		case WEATHER_PATH:
-			message.setInvocationProperty("requestSpecs", new LinkedList(WEATHER_REQUEST_SPECS));
-			
-			message.setInvocationProperty("needsCache", true);
-			message.setInvocationProperty("mongoCollectionName", "weatherToday");
-			message.setInvocationProperty("timeoutMillis", TimeUnit.HOURS.toMillis(1));
-			break;
-		case TRAIN_S2S_PATH:
-			message.setInvocationProperty("requestSpecs", new LinkedList(TRAIN_S2S_REQUEST_SPECS));
-			
-			message.setInvocationProperty("needsCache", false);
-			break;
+		@SuppressWarnings("unchecked")
+		Map<String, String> requestParams = (Map<String, String>)message.getInboundProperty("http.query.params");
+		message.setInvocationProperty("requestParams", requestParams);
+		
+		try {
+			switch (reqPath) {
+			case WEATHER_PATH:
+				WEATHER_VALIDATOR.validateWithException(requestParams);
+				message.setInvocationProperty("requestSpecs", new LinkedList(WEATHER_REQUEST_SPECS));
+				
+				message.setInvocationProperty("needsCache", true);
+				message.setInvocationProperty("_id", WEATHER_VALIDATOR.generate_idFromRequestMap(requestParams));
+				message.setInvocationProperty("mongoCollectionName", "weatherToday");
+				
+				message.setInvocationProperty("hasTimeout", true);
+				message.setInvocationProperty("timeoutMillis", TimeUnit.HOURS.toMillis(1));
+				break;
+			case TRAIN_S2S_PATH:
+				TRAIN_S2S_VALIDATOR.validateWithException(requestParams);
+				message.setInvocationProperty("requestSpecs", new LinkedList(TRAIN_S2S_REQUEST_SPECS));
+				
+				message.setInvocationProperty("needsCache", false);
+				break;
+			case TRAIN_TNO_PATH:
+				TRAIN_TNO_VALIDATOR.validateWithException(requestParams);
+				message.setInvocationProperty("requestSpecs", new LinkedList(TRAIN_NO_REQUEST_SPECS));
+				
+				message.setInvocationProperty("needsCache", true);
+				message.setInvocationProperty("_id", TRAIN_TNO_VALIDATOR.generate_idFromRequestMap(requestParams));
+				message.setInvocationProperty("mongoCollectionName", "trainnoCache");
+				
+				message.setInvocationProperty("hasTimeout", false);
+				break;
 
-		default:
-			LOGGER.error("request path not found.");
-			Message msg = CoreMessages.transformFailedFrom(ResultStandardizer.class);
-			throw new TransformerException(msg);
+			default:
+				LOGGER.error("request path not found.");
+				Message msg = CoreMessages.transformFailedFrom(ResultStandardizer.class);
+				throw new TransformerException(msg);
+			}
+		} catch (ParamsValidationException e) {
+			throw new TransformerException(this, e);
 		}
+		
 		
 //		if(P_WEATHER.matcher(reqPath).matches()){
 //			message.setInvocationProperty("requestSpecs", new LinkedList(WEATHER_REQUEST_SPECS));

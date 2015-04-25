@@ -38,21 +38,21 @@ public class StandardizerImpl extends ResultStandardizer<WeatherResult>{
 		String[] temps2 = ss[12].split("/");
 		String[] temps3 = ss[17].split("/");
 		
-		ret.setcity(ss[1]);
-		ret.setdate(ss[4].split(" ")[0]);
-		ret.settempMin(temps1[0]);
-		ret.settempMax(temps1[1]);
-		ret.setweatherInfo(ss[6].split(" ")[1]);
+		ret.setCity(ss[1]);
+		ret.setDate(ss[4].split(" ")[0]);
+		ret.setTempMin(temps1[0]);
+		ret.setTempMax(temps1[1]);
+		ret.setWeatherInfo(ss[6].split(" ")[1]);
 		
-		ret.settempMin2(temps2[0]);
-		ret.settempMax2(temps2[1]);
-		ret.setweatherInfo2(ss[13].split(" ")[1]);
+		ret.setTempMin2(temps2[0]);
+		ret.setTempMax2(temps2[1]);
+		ret.setWeatherInfo2(ss[13].split(" ")[1]);
 		
-		ret.settempMin3(temps3[0]);
-		ret.settempMax3(temps3[1]);
-		ret.setweatherInfo3(ss[18].split(" ")[1]);
+		ret.setTempMin3(temps3[0]);
+		ret.setTempMax3(temps3[1]);
+		ret.setWeatherInfo3(ss[18].split(" ")[1]);
 		
-		ret.set_id(ss[1]);
+//		ret.set_id(ss[1]);
 		return ret;
 	}
 

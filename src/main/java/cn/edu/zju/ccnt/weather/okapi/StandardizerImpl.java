@@ -28,22 +28,22 @@ public class StandardizerImpl extends ResultStandardizer<WeatherResult> {
 		Map<String, Object> resData = MAPPER.readValue(json, Map.class);
 		
 		WeatherResult ret = new WeatherResult();
-		ret.setcity((String)getMapObjByPath(resData,new String[]{"c","c3"}));
-		ret.set_id(ret.getcity());
-		ret.setdate(((String)resData.get("t")).substring(0, 8));
-		ret.settempMax((String)getMapObjByPath(resData,new String[]{"w1","fc"}));
-		ret.settempMin((String)getMapObjByPath(resData,new String[]{"w1","fd"}));
+		ret.setCity((String)getMapObjByPath(resData,new String[]{"c","c3"}));
+//		ret.set_id(ret.getCity());
+		ret.setDate(((String)resData.get("t")).substring(0, 8));
+		ret.setTempMax((String)getMapObjByPath(resData,new String[]{"w1","fc"}));
+		ret.setTempMin((String)getMapObjByPath(resData,new String[]{"w1","fd"}));
 		String info = (String)getMapObjByPath(resData,new String[]{"w1","fa"});
 		info = (info == null || info.equals("")) ? (String)getMapObjByPath(resData,new String[]{"w1","fb"}) : info;
-		ret.setweatherInfo(infoCode2String(info));
+		ret.setWeatherInfo(infoCode2String(info));
 		
-		ret.settempMax2((String)getMapObjByPath(resData,new String[]{"w2","fc"}));
-		ret.settempMin2((String)getMapObjByPath(resData,new String[]{"w2","fd"}));
-		ret.setweatherInfo2(infoCode2String((String)getMapObjByPath(resData,new String[]{"w2","fa"})));
+		ret.setTempMax2((String)getMapObjByPath(resData,new String[]{"w2","fc"}));
+		ret.setTempMin2((String)getMapObjByPath(resData,new String[]{"w2","fd"}));
+		ret.setWeatherInfo2(infoCode2String((String)getMapObjByPath(resData,new String[]{"w2","fa"})));
 		
-		ret.settempMax3((String)getMapObjByPath(resData,new String[]{"w3","fc"}));
-		ret.settempMin3((String)getMapObjByPath(resData,new String[]{"w3","fd"}));
-		ret.setweatherInfo3(infoCode2String((String)getMapObjByPath(resData,new String[]{"w3","fa"})));
+		ret.setTempMax3((String)getMapObjByPath(resData,new String[]{"w3","fc"}));
+		ret.setTempMin3((String)getMapObjByPath(resData,new String[]{"w3","fd"}));
+		ret.setWeatherInfo3(infoCode2String((String)getMapObjByPath(resData,new String[]{"w3","fa"})));
 		
 		return ret;
 	}

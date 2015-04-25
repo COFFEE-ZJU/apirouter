@@ -67,7 +67,6 @@ public class RestRequestPramsGeneratorImpl extends RestRequestPramsGenerator {
 	public String generateParamString(Map<String, String> params)
 			throws Exception {
 		String city = params.get("city");
-		if(city == null) throw new Exception("missing param city");
 		
 		String code = getCityCode(city);
 		if(code == null) throw new Exception("failed to find city code from mongoDB for: "+city);

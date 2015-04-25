@@ -1,4 +1,4 @@
-package cn.edu.zju.ccnt;
+package cn.edu.zju.ccnt.cache.mongo;
 
 import org.mule.api.MuleMessage;
 import org.mule.api.transformer.TransformerException;

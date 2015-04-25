@@ -40,8 +40,6 @@ public class StandardizerImpl extends ResultStandardizer<Station2StationResult>{
 		SeatInfo seat;
 		List<Map<String, Object>> oriSeats;
 		
-		
-		
 		for(Map<String, Object> oriRecord : oriRecords){
 			record = ret.new ResultRecord();
 			record.setTrainNo((String)oriRecord.get("train_no"));

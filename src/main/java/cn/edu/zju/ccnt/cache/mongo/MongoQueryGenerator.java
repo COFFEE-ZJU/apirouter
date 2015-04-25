@@ -1,7 +1,4 @@
-package cn.edu.zju.ccnt;
-
-import java.util.Map;
-import java.util.Map.Entry;
+package cn.edu.zju.ccnt.cache.mongo;
 
 import org.apache.log4j.Logger;
 import org.mule.api.MuleMessage;
@@ -18,19 +15,22 @@ public class MongoQueryGenerator extends AbstractMessageTransformer {
 	public Object transformMessage(MuleMessage message, String outputEncoding)
 			throws TransformerException {
 		try{
-			@SuppressWarnings("unchecked")
-			Map<String, String> params = (Map<String, String>)message.getInvocationProperty("requstParams");
-			long timeoutMillis = (long)message.getInvocationProperty("timeoutMillis");
-			long timeout = System.currentTimeMillis() - timeoutMillis;
+//			@SuppressWarnings("unchecked")
+//			Map<String, String> params = (Map<String, String>)message.getInvocationProperty("requestParams");
 			
 			DBObject query = new BasicDBObject();
-			for(Entry<String, String> entry : params.entrySet()){
-				query.put(entry.getKey(), entry.getValue());
-			}
+//			for(Entry<String, String> entry : params.entrySet()){
+//				query.put(entry.getKey(), entry.getValue());
+//			}
+			query.put("_id", (String)message.getInvocationProperty("_id"));
 			
-			DBObject cmp = new BasicDBObject();
-			cmp.put(QueryOperators.GTE, timeout);
-			query.put("timestamp", cmp);
+			if((boolean)message.getInvocationProperty("hasTimeout")){
+				long timeoutMillis = (long)message.getInvocationProperty("timeoutMillis");
+				long timeout = System.currentTimeMillis() - timeoutMillis;
+				DBObject cmp = new BasicDBObject();
+				cmp.put(QueryOperators.GTE, timeout);
+				query.put("timestamp", cmp);
+			}
 			
 			message.setPayload(query);
 			

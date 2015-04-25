@@ -1,11 +1,10 @@
 package cn.edu.zju.ccnt;
 
-public class ErrorResult extends ApiResult {
+public class ErrorResult {
 	private String errorCode;
 	private String errorMessage;
 	
 	public ErrorResult(String errorCode, String errorMessage) {
-		super();
 		this.errorCode = errorCode;
 		this.errorMessage = errorMessage;
 	}
