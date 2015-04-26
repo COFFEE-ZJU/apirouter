@@ -10,7 +10,7 @@ import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 import cn.edu.zju.ccnt.ApiResult;
 
 @JsonAutoDetect
-@JsonIgnoreProperties(ignoreUnknown = true,value = {"_id","partialObject","timestamp"})
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Station2StationResult extends ApiResult{
 	private static final Map<Character, String> TRAIN_LETTER_TO_TYPE = new HashMap<Character, String>();
 	
