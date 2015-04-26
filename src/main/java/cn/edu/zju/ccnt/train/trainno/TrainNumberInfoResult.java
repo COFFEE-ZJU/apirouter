@@ -1,4 +1,4 @@
-package cn.edu.zju.ccnt.train;
+package cn.edu.zju.ccnt.train.trainno;
 
 import java.util.List;
 

@@ -39,7 +39,7 @@ http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/m
 			level="INFO" doc:name="Logger" />
         <custom-transformer class="cn.edu.zju.ccnt.RequestPreprocessor" doc:name="Java"/>
         <choice doc:name="Choice">
-            <when expression="#[flowVars.needsCache]">
+            <when expression="#[flowVars.apiCatagorySpec.needsCache()]">
                 <flow-ref name="invokeFlowWithMongoCache" doc:name="Flow Reference"/>
             </when>
             <otherwise>
@@ -58,7 +58,7 @@ http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/m
         <first-successful doc:name="First Successful">
             <processor-chain>
                 <custom-transformer class="cn.edu.zju.ccnt.cache.mongo.MongoQueryGenerator" doc:name="Java"/>
-                <mongo:find-one-object config-ref="Mongo_DB" collection="#[flowVars.mongoCollectionName]" doc:name="Mongo DB"/>
+                <mongo:find-one-object config-ref="Mongo_DB" collection="#[flowVars.apiCatagorySpec.getMongoCollectionName()]" doc:name="Mongo DB"/>
                 <custom-transformer class="cn.edu.zju.ccnt.cache.mongo.Mongo2Json" doc:name="Java"/>
             </processor-chain>
             <flow-ref name="REST_JSON_InvokeFlow" doc:name="Flow Reference"/>
@@ -68,10 +68,10 @@ http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/m
         <set-variable variableName="requestSpec" value="#[flowVars.requestSpecs.poll()]" doc:name="Variable"/>
         <choice doc:name="Choice">
             <when expression="#[flowVars.requestSpec.isMethodGet()]">
-                <http:outbound-endpoint exchange-pattern="request-response" method="GET" address="http://#[flowVars.requestSpec.getUrl()]#[flowVars.requestSpec.getParamsGenerator().generateParamString(flowVars.requestParams)]" doc:name="HTTP"/>
+                <http:outbound-endpoint exchange-pattern="request-response" method="GET" address="http://#[flowVars.requestSpec.getUrl()]#[flowVars.requestSpec.generateParamString(flowVars.apiCatagorySpec.getCurrentRequestParams())]" doc:name="HTTP"/>
             </when>
             <otherwise>
-                <set-payload value="#[flowVars.requestSpec.getParamsGenerator().generateParamString(flowVars.requestParams)]" doc:name="Set Payload"/>
+                <set-payload value="#[flowVars.requestSpec.generateParamString(flowVars.apiCatagorySpec.getCurrentRequestParams())]" doc:name="Set Payload"/>
                 <http:outbound-endpoint exchange-pattern="request-response" method="POST" address="http://#[flowVars.requestSpec.getUrl()]" contentType="application/x-www-form-urlencoded" doc:name="HTTP"/>
             </otherwise>
         </choice>
@@ -79,8 +79,8 @@ http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/m
         <logger message="resp #[payload]" level="INFO" doc:name="Logger"/>
         <custom-transformer class="cn.edu.zju.ccnt.ResponsePostprocessor" doc:name="Java"/>
         <choice doc:name="Choice">
-            <when expression="#[flowVars.needsCache]">
-                <mongo:save-object config-ref="Mongo_DB" collection="#[flowVars.mongoCollectionName]" doc:name="Mongo DB"/>
+            <when expression="#[flowVars.apiCatagorySpec.needsCache()]">
+                <mongo:save-object config-ref="Mongo_DB" collection="#[flowVars.apiCatagorySpec.getMongoCollectionName()]" doc:name="Mongo DB"/>
                 <set-payload value="#[flowVars.responseString]" doc:name="Set Payload"/>
             </when>
             <otherwise>

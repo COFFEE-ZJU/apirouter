@@ -19,16 +19,16 @@ public class ResponsePostprocessor extends AbstractMessageTransformer{
 	@Override
 	public Object transformMessage(MuleMessage message, String outputEncoding)
 			throws TransformerException {
+		ApiCatagorySpec<? extends ApiResult> apiCatagorySpec = (ApiCatagorySpec<? extends ApiResult>)message.getInvocationProperty("apiCatagorySpec");
 		RequestSpec<? extends ApiResult> spec = (RequestSpec<? extends ApiResult>)message.getInvocationProperty("requestSpec");
 		try {
-			ApiResult result = spec.getResultStandardizer().standardize(
-					message.getPayload(), (Map<String, String>)message.getInvocationProperty("requestParams"));
+			ApiResult result = spec.standardize(
+					message.getPayload(), apiCatagorySpec.getCurrentRequestParams());
 			Map<String, Object> map = (Map<String, Object>)MAPPER.convertValue(result, Map.class);
-			boolean needsCache = (boolean)message.getInvocationProperty("needsCache");
 			
-			if(needsCache){	//need to save the result into mongoDB, so generate the DBObject
+			if(apiCatagorySpec.needsCache()){	//need to save the result into mongoDB, so generate the DBObject
 				DBObject dbObj = new BasicDBObject(map);
-				dbObj.put("_id", (String)message.getInvocationProperty("_id"));
+				dbObj.put("_id", apiCatagorySpec.generate_idFromRequestMap());
 				dbObj.put("timestamp", System.currentTimeMillis());
 				message.setPayload(dbObj);
 			}
@@ -37,7 +37,7 @@ public class ResponsePostprocessor extends AbstractMessageTransformer{
 //			map.remove("timestamp");
 			String json = MAPPER.writeValueAsString(map);
 			
-			if(needsCache)	//need to save the result into mongoDB, so set the repsonse json string to var:responseString
+			if(apiCatagorySpec.needsCache())	//need to save the result into mongoDB, so set the repsonse json string to var:responseString
 				message.setInvocationProperty("responseString", json);
 			else			//no need, just generate the response json string
 				message.setPayload(json);

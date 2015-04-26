@@ -10,8 +10,8 @@ import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 
 import cn.edu.zju.ccnt.ResultStandardizer;
-import cn.edu.zju.ccnt.train.TrainNumberInfoResult;
-import cn.edu.zju.ccnt.train.TrainNumberInfoResult.TrainStopInfo;
+import cn.edu.zju.ccnt.train.trainno.TrainNumberInfoResult;
+import cn.edu.zju.ccnt.train.trainno.TrainNumberInfoResult.TrainStopInfo;
 
 public class StandardizerImpl extends ResultStandardizer<TrainNumberInfoResult>{
 	private static final ObjectMapper MAPPER = new ObjectMapper();

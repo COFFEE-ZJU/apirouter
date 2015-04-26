@@ -1,11 +1,7 @@
 package cn.edu.zju.ccnt;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -91,25 +87,25 @@ public class ParamsValidatorFactory {
 			
 		}
 
-		@Override
-		public String generate_idFromRequestMap(
-				Map<String, String> requestParams) {
-			List<Map.Entry<String,String>> list = new ArrayList<Map.Entry<String,String>>(requestParams.entrySet());
-	        Collections.sort(list,new Comparator<Map.Entry<String,String>>() {
-	            @Override
-	            public int compare(Map.Entry<String, String> o1,
-	            		Map.Entry<String, String> o2) {
-	                return o1.getKey().compareTo(o2.getKey());
-	            }
-	        });
-	        
-	        StringBuilder sb = new StringBuilder();
-	        for(Map.Entry<String, String> entry : list){
-	        	sb.append(entry.getValue());
-	        	sb.append("&");
-	        }
-			return sb.toString();
-		}
+//		@Override
+//		public String generate_idFromRequestMap(
+//				Map<String, String> requestParams) {
+//			List<Map.Entry<String,String>> list = new ArrayList<Map.Entry<String,String>>(requestParams.entrySet());
+//	        Collections.sort(list,new Comparator<Map.Entry<String,String>>() {
+//	            @Override
+//	            public int compare(Map.Entry<String, String> o1,
+//	            		Map.Entry<String, String> o2) {
+//	                return o1.getKey().compareTo(o2.getKey());
+//	            }
+//	        });
+//	        
+//	        StringBuilder sb = new StringBuilder();
+//	        for(Map.Entry<String, String> entry : list){
+//	        	sb.append(entry.getValue());
+//	        	sb.append("&");
+//	        }
+//			return sb.toString();
+//		}
 	}
 }
 

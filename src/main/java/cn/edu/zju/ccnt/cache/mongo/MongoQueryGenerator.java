@@ -5,6 +5,9 @@ import org.mule.api.MuleMessage;
 import org.mule.api.transformer.TransformerException;
 import org.mule.transformer.AbstractMessageTransformer;
 
+import cn.edu.zju.ccnt.ApiCatagorySpec;
+import cn.edu.zju.ccnt.ApiResult;
+
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBObject;
 import com.mongodb.QueryOperators;
@@ -15,18 +18,13 @@ public class MongoQueryGenerator extends AbstractMessageTransformer {
 	public Object transformMessage(MuleMessage message, String outputEncoding)
 			throws TransformerException {
 		try{
-//			@SuppressWarnings("unchecked")
-//			Map<String, String> params = (Map<String, String>)message.getInvocationProperty("requestParams");
-			
 			DBObject query = new BasicDBObject();
-//			for(Entry<String, String> entry : params.entrySet()){
-//				query.put(entry.getKey(), entry.getValue());
-//			}
-			query.put("_id", (String)message.getInvocationProperty("_id"));
+			@SuppressWarnings("unchecked")
+			ApiCatagorySpec<? extends ApiResult> apiCatagorySpec = (ApiCatagorySpec<? extends ApiResult>)message.getInvocationProperty("apiCatagorySpec");
+			query.put("_id", apiCatagorySpec.generate_idFromRequestMap());
 			
-			if((boolean)message.getInvocationProperty("hasTimeout")){
-				long timeoutMillis = (long)message.getInvocationProperty("timeoutMillis");
-				long timeout = System.currentTimeMillis() - timeoutMillis;
+			if(apiCatagorySpec.hasTimeout()){
+				long timeout = System.currentTimeMillis() - apiCatagorySpec.getTimeoutMillis();
 				DBObject cmp = new BasicDBObject();
 				cmp.put(QueryOperators.GTE, timeout);
 				query.put("timestamp", cmp);

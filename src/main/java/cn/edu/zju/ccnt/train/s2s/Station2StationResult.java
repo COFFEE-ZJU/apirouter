@@ -1,4 +1,4 @@
-package cn.edu.zju.ccnt.train;
+package cn.edu.zju.ccnt.train.s2s;
 
 import java.util.HashMap;
 import java.util.List;

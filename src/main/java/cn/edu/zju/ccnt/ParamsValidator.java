@@ -32,5 +32,5 @@ public abstract class ParamsValidator {
 	 * @param requestParams
 	 * @return the generated _id field for MongoDB
 	 */
-	public abstract String generate_idFromRequestMap(Map<String, String> requestParams);
+//	public abstract String generate_idFromRequestMap(Map<String, String> requestParams);
 }
