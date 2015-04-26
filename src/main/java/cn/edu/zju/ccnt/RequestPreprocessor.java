@@ -3,14 +3,16 @@ package cn.edu.zju.ccnt;
 import java.util.LinkedList;
 import java.util.Map;
 
+import org.apache.log4j.Logger;
 import org.mule.api.MuleMessage;
 import org.mule.api.transformer.TransformerException;
+import org.mule.config.i18n.CoreMessages;
 import org.mule.transformer.AbstractMessageTransformer;
 
 import cn.edu.zju.ccnt.ParamsValidator.ParamsValidationException;
 
 public class RequestPreprocessor extends AbstractMessageTransformer {
-//	private static final Logger LOGGER = Logger.getLogger(RequestPreprocessor.class);
+	private static final Logger LOGGER = Logger.getLogger(RequestPreprocessor.class);
 
 	@Override
 	public Object transformMessage(MuleMessage message, String outputEncoding)
@@ -32,10 +34,14 @@ public class RequestPreprocessor extends AbstractMessageTransformer {
 				} catch (ParamsValidationException e) {
 					throw new TransformerException(this, e);
 				}
+				
+				return message;
 			}
 		}
 		
-		return message;
+		// no path matched
+		LOGGER.error("request path not found.");
+		throw new TransformerException(CoreMessages.transformFailedFrom(getClass()));
 	}
 	
 }

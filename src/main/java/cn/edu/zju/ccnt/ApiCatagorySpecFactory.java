@@ -14,6 +14,7 @@ public class ApiCatagorySpecFactory {
 		 API_CATAGORY_SPECS.add(new cn.edu.zju.ccnt.express.ApiCatagorySpecImpl());
 		 API_CATAGORY_SPECS.add(new cn.edu.zju.ccnt.ip.ApiCatagorySpecImpl());
 		 API_CATAGORY_SPECS.add(new cn.edu.zju.ccnt.phone.ApiCatagorySpecImpl());
+		 API_CATAGORY_SPECS.add(new cn.edu.zju.ccnt.flight.c2c.ApiCatagorySpecImpl());
 	}
 	
 	public static List<ApiCatagorySpec<? extends ApiResult>> getApiCatagorySpecs(){
